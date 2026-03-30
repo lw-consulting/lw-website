@@ -4,8 +4,8 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
-const SURVEY_DATA_FILE = path.join(__dirname, 'survey_data.json');
-const SURVEY_RESULTS_FILE = path.join(__dirname, 'survey_results.json');
+const SURVEY_DATA_FILE = path.join('/tmp', 'survey_data.json');
+const SURVEY_RESULTS_FILE = path.join('/tmp', 'survey_results.json');
 
 const EMPTY_SURVEY = { active: false, title: '', questions: [] };
 const EMPTY_RESULTS = { responses: [] };
