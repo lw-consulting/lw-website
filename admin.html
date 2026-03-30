@@ -117,6 +117,15 @@
     .refresh-hint { font-size: 0.775rem; color: var(--text-light); text-align: right; margin-top: 0.75rem; }
     .divider { height: 1px; background: var(--border); margin: 1rem 0; }
 
+    /* ── Toggle ── */
+    .toggle-row { display:flex; align-items:center; gap:0.65rem; cursor:pointer; user-select:none; }
+    .toggle-row input[type="checkbox"] { display:none; }
+    .toggle-track { width:36px; height:20px; background:var(--border); border-radius:100px; position:relative; transition:background var(--transition); flex-shrink:0; }
+    .toggle-thumb { position:absolute; top:3px; left:3px; width:14px; height:14px; background:white; border-radius:50%; transition:transform var(--transition); box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+    .toggle-row input:checked ~ .toggle-track { background:var(--primary); }
+    .toggle-row input:checked ~ .toggle-track .toggle-thumb { transform:translateX(16px); }
+    .toggle-label { font-size:0.875rem; color:var(--text); }
+
     /* ── Toast ── */
     .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; padding: 0.75rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 600; color: white; opacity: 0; transform: translateY(8px); transition: opacity 0.25s, transform 0.25s; pointer-events: none; }
     .toast.show { opacity: 1; transform: translateY(0); }
@@ -176,6 +185,22 @@
       <div class="form-group">
         <label for="surveyTitle">Titel</label>
         <input type="text" id="surveyTitle" placeholder="z.B. Workshop Feedback Mai 2026">
+      </div>
+
+      <div class="form-group">
+        <label>Teilnehmerfelder</label>
+        <div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.25rem;">
+          <label class="toggle-row">
+            <input type="checkbox" id="showName" checked>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-label">Name abfragen</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="showEmail">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-label">E-Mail abfragen</span>
+          </label>
+        </div>
       </div>
 
       <div class="divider"></div>
@@ -378,6 +403,8 @@
     if (!s) return;
     document.getElementById('editingSurveyId').value = id;
     document.getElementById('surveyTitle').value = s.title;
+    document.getElementById('showName').checked = s.showName !== false;
+    document.getElementById('showEmail').checked = !!s.showEmail;
     document.getElementById('questionList').innerHTML = '';
     questionCounter = 0;
     (s.questions || []).forEach(q => addQuestion(q));
@@ -390,6 +417,8 @@
   function cancelEdit() {
     document.getElementById('editingSurveyId').value = '';
     document.getElementById('surveyTitle').value = '';
+    document.getElementById('showName').checked = true;
+    document.getElementById('showEmail').checked = false;
     document.getElementById('questionList').innerHTML = '';
     questionCounter = 0;
     addQuestion();
@@ -422,18 +451,19 @@
     });
     if (!valid) { showToast('Alle Felder ausfuellen (min. 2 Optionen bei Multiple Choice).', 'error'); return; }
 
+    const showName = document.getElementById('showName').checked;
+    const showEmail = document.getElementById('showEmail').checked;
     const editingId = document.getElementById('editingSurveyId').value;
     const btn = document.getElementById('saveBtn');
     btn.disabled = true; btn.textContent = 'Wird gespeichert...';
 
     try {
       if (editingId) {
-        // Update via delete + create (simple approach)
         await fetch('/api/delete', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: editingId }) });
       }
       const res = await fetch('/api/create', {
         method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ title, questions })
+        body: JSON.stringify({ title, questions, showName, showEmail })
       });
       if (res.ok) {
         showToast(editingId ? 'Umfrage aktualisiert!' : 'Umfrage gespeichert!', 'success');
@@ -547,7 +577,8 @@
       const idx = responses.length - i;
       const time = new Date(r.timestamp).toLocaleString('de-AT', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
       const uid = 'resp_' + i;
-      html += `<div class="individual-response"><div class="individual-response__header" onclick="toggleResponse('${uid}')"><span class="individual-response__name">${escHtml(r.name||'Anonym')}</span><span class="individual-response__meta">#${idx} &middot; ${time}</span></div><div class="individual-response__body" id="${uid}">`;
+      const emailTag = r.email ? `<span style="font-size:.75rem;color:var(--text-light);margin-left:.5rem">${escHtml(r.email)}</span>` : '';
+      html += `<div class="individual-response"><div class="individual-response__header" onclick="toggleResponse('${uid}')"><span class="individual-response__name">${escHtml(r.name||'Anonym')}${emailTag}</span><span class="individual-response__meta">#${idx} &middot; ${time}</span></div><div class="individual-response__body" id="${uid}">`;
       Object.entries(r.answers).forEach(([qid, ans]) => {
         const q = qMap[qid]; if (!q) return;
         const ansText = Array.isArray(ans) ? (ans.length ? ans.join(', ') : '—') : (q.type === 'rating' ? ans + ' / 10' : (ans || '—'));
@@ -675,7 +706,7 @@
     rows.push([]);
     rows.push(['EINZELERGEBNISSE']);
     rows.push([]);
-    rows.push(['#', 'Name', 'Datum/Uhrzeit', ...questions.map(q => q.text)]);
+    rows.push(['#', 'Name', 'E-Mail', 'Datum/Uhrzeit', ...questions.map(q => q.text)]);
     responses.forEach((r, i) => {
       const dt = new Date(r.timestamp).toLocaleString('de-AT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
       const cols = questions.map(q => {
@@ -684,7 +715,7 @@
         if (q.type === 'rating') return a != null ? a + '/10' : '';
         return a != null ? a : '';
       });
-      rows.push([i+1, r.name||'Anonym', dt, ...cols]);
+      rows.push([i+1, r.name||'Anonym', r.email||'', dt, ...cols]);
     });
 
     triggerCSVDownload(rows, survey.title + '_Ergebnisse');

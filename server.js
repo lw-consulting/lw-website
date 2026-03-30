@@ -101,6 +101,8 @@ http.createServer((req, res) => {
           id, active: false,
           title: body.title || 'Neue Umfrage',
           questions: body.questions || [],
+          showName: body.showName !== false,
+          showEmail: !!body.showEmail,
           createdAt: new Date().toISOString()
         };
         if (!store.results) store.results = {};
@@ -174,6 +176,7 @@ http.createServer((req, res) => {
         store.results[store.activeSurveyId].responses.push({
           timestamp: new Date().toISOString(),
           name: body.name || 'Anonym',
+          email: body.email || '',
           answers: body.answers || {}
         });
         writeStore(store);
