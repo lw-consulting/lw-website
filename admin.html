@@ -5,317 +5,137 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin | Umfrage-Dashboard</title>
   <style>
-    /* ── CSS Variables ── */
     :root {
-      --primary: #8496f8;
-      --primary-dark: #6b7de8;
-      --primary-light: #a8b5fb;
-      --dark: #282828;
-      --text: #3a3a3a;
-      --text-light: #6b7280;
-      --bg: #ffffff;
-      --bg-light: #edebe9;
-      --bg-page: #f5f4f2;
-      --border: #e5e7eb;
-      --radius: 10px;
-      --radius-lg: 16px;
-      --shadow: 0 2px 12px rgba(0,0,0,0.07);
-      --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
-      --transition: 0.2s ease;
-      --danger: #ef4444;
-      --success: #22c55e;
+      --primary: #8496f8; --primary-dark: #6b7de8; --primary-light: #a8b5fb;
+      --dark: #282828; --text: #3a3a3a; --text-light: #6b7280;
+      --bg: #ffffff; --bg-light: #edebe9; --bg-page: #f5f4f2;
+      --border: #e5e7eb; --radius: 10px; --radius-lg: 16px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07); --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+      --transition: 0.2s ease; --danger: #ef4444; --success: #22c55e;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: var(--text); background: var(--bg-page); line-height: 1.6; min-height: 100vh; }
 
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      color: var(--text); background: var(--bg-page);
-      line-height: 1.6; min-height: 100vh;
-    }
-
-    /* ── Login Screen ── */
-    #loginScreen {
-      min-height: 100vh;
-      display: flex; align-items: center; justify-content: center;
-      padding: 1.5rem;
-    }
-    .login-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 2.5rem;
-      width: 100%; max-width: 400px;
-      box-shadow: var(--shadow-lg);
-      text-align: center;
-    }
+    /* ── Login ── */
+    #loginScreen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+    .login-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 2.5rem; width: 100%; max-width: 400px; box-shadow: var(--shadow-lg); text-align: center; }
     .login-card__logo { margin-bottom: 1.5rem; }
     .login-card__logo img { height: 36px; }
-    .login-card h1 {
-      font-size: 1.35rem; font-weight: 700; color: var(--dark);
-      margin-bottom: 0.35rem;
-    }
+    .login-card h1 { font-size: 1.35rem; font-weight: 700; color: var(--dark); margin-bottom: 0.35rem; }
     .login-card p { color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.75rem; }
-    .login-error {
-      display: none;
-      background: rgba(239,68,68,0.1); color: var(--danger);
-      border-radius: var(--radius); padding: 0.6rem 1rem;
-      font-size: 0.875rem; margin-bottom: 1rem;
-    }
+    .login-error { display: none; background: rgba(239,68,68,0.1); color: var(--danger); border-radius: var(--radius); padding: 0.6rem 1rem; font-size: 0.875rem; margin-bottom: 1rem; }
 
     /* ── Dashboard ── */
     #dashboard { display: none; }
-
-    .topbar {
-      background: var(--bg); border-bottom: 1px solid var(--border);
-      padding: 0 1.5rem;
-      position: sticky; top: 0; z-index: 100;
-      box-shadow: var(--shadow);
-    }
-    .topbar__inner {
-      max-width: 1200px; margin: 0 auto;
-      display: flex; align-items: center; justify-content: space-between;
-      height: 60px;
-    }
+    .topbar { background: var(--bg); border-bottom: 1px solid var(--border); padding: 0 1.5rem; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+    .topbar__inner { max-width: 1300px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 60px; }
     .topbar__left { display: flex; align-items: center; gap: 1rem; }
     .topbar__logo img { height: 32px; display: block; }
-    .topbar__title {
-      font-size: 0.9rem; font-weight: 600; color: var(--text-light);
-      padding-left: 1rem; border-left: 1px solid var(--border);
-    }
-    .topbar__right { display: flex; align-items: center; gap: 0.75rem; }
-    .badge {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.7rem;
-      border-radius: 100px;
-    }
+    .topbar__title { font-size: 0.9rem; font-weight: 600; color: var(--text-light); padding-left: 1rem; border-left: 1px solid var(--border); }
+    .badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.7rem; border-radius: 100px; }
     .badge--active { background: rgba(34,197,94,0.12); color: var(--success); }
     .badge--inactive { background: rgba(107,114,128,0.12); color: var(--text-light); }
-    .badge::before {
-      content: ''; width: 7px; height: 7px; border-radius: 50%;
-      background: currentColor;
-    }
+    .badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
 
-    /* ── Main Layout ── */
-    .main {
-      max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      align-items: start;
-    }
+    /* ── Main grid ── */
+    .main { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem; display: grid; grid-template-columns: 380px 1fr; gap: 1.5rem; align-items: start; }
 
     /* ── Cards ── */
-    .card {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.75rem;
-      box-shadow: var(--shadow);
-    }
-    .card__header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 1.5rem; padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-    .card__title {
-      font-size: 1rem; font-weight: 700; color: var(--dark);
-    }
+    .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; box-shadow: var(--shadow); }
+    .card__header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .card__title { font-size: 1rem; font-weight: 700; color: var(--dark); }
     .card__subtitle { font-size: 0.825rem; color: var(--text-light); margin-top: 0.2rem; }
 
     /* ── Forms ── */
     .form-group { margin-bottom: 1rem; }
-    .form-group label {
-      display: block; font-size: 0.825rem; font-weight: 600;
-      color: var(--text); margin-bottom: 0.4rem;
-    }
-    input[type="text"], input[type="password"], select, textarea {
-      width: 100%; padding: 0.7rem 0.9rem;
-      border: 1px solid var(--border); border-radius: var(--radius);
-      font-size: 0.9rem; font-family: inherit; color: var(--text);
-      background: var(--bg);
-      transition: border-color var(--transition), box-shadow var(--transition);
-      outline: none;
-    }
-    input[type="text"]:focus, input[type="password"]:focus, select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(132,150,248,0.15);
-    }
+    .form-group label { display: block; font-size: 0.825rem; font-weight: 600; color: var(--text); margin-bottom: 0.4rem; }
+    input[type="text"], input[type="password"], select { width: 100%; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.9rem; font-family: inherit; color: var(--text); background: var(--bg); transition: border-color var(--transition), box-shadow var(--transition); outline: none; }
+    input[type="text"]:focus, input[type="password"]:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(132,150,248,0.15); }
 
     /* ── Buttons ── */
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
-      padding: 0.7rem 1.25rem; border-radius: var(--radius);
-      font-size: 0.875rem; font-weight: 600;
-      cursor: pointer; border: none; font-family: inherit;
-      transition: transform var(--transition), box-shadow var(--transition), background var(--transition), opacity var(--transition);
-      text-decoration: none;
-    }
-    .btn--primary {
-      background: var(--primary); color: white;
-      box-shadow: 0 4px 12px rgba(132,150,248,0.35);
-    }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.7rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: transform var(--transition), box-shadow var(--transition), background var(--transition), opacity var(--transition); text-decoration: none; }
+    .btn--primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(132,150,248,0.35); }
     .btn--primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
-    .btn--outline {
-      background: transparent; color: var(--text);
-      border: 1px solid var(--border);
-    }
+    .btn--outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
     .btn--outline:hover { background: var(--bg-light); }
-    .btn--danger {
-      background: rgba(239,68,68,0.1); color: var(--danger);
-      border: 1px solid rgba(239,68,68,0.2);
-    }
+    .btn--success { background: rgba(34,197,94,0.1); color: var(--success); border: 1px solid rgba(34,197,94,0.25); }
+    .btn--success:hover { background: rgba(34,197,94,0.18); }
+    .btn--danger { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
     .btn--danger:hover { background: rgba(239,68,68,0.18); }
     .btn--sm { padding: 0.4rem 0.85rem; font-size: 0.8rem; }
+    .btn--xs { padding: 0.3rem 0.65rem; font-size: 0.75rem; }
     .btn--full { width: 100%; }
     .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
 
-    /* ── Question Builder ── */
+    /* ── Question builder ── */
     .question-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
-    .question-item {
-      border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 1rem; background: var(--bg-page);
-      position: relative;
-    }
+    .question-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; background: var(--bg-page); }
     .question-item__row { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; align-items: start; }
     .question-item__fields { display: flex; flex-direction: column; gap: 0.6rem; }
-    .question-item__remove {
-      background: none; border: none; cursor: pointer; color: var(--text-light);
-      padding: 0.2rem; border-radius: 6px; font-size: 1.1rem; line-height: 1;
-      transition: color var(--transition);
-      margin-top: 2px;
-    }
+    .question-item__remove { background: none; border: none; cursor: pointer; color: var(--text-light); padding: 0.2rem; border-radius: 6px; font-size: 1.1rem; line-height: 1; transition: color var(--transition); margin-top: 2px; }
     .question-item__remove:hover { color: var(--danger); }
     .options-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; }
     .option-row { display: flex; align-items: center; gap: 0.5rem; }
     .option-row input[type="text"] { padding: 0.45rem 0.75rem; font-size: 0.85rem; }
-    .option-row .btn { flex-shrink: 0; }
+
+    /* ── Survey list ── */
+    .survey-list { display: flex; flex-direction: column; gap: 0.75rem; }
+    .survey-list-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; background: var(--bg); transition: border-color var(--transition); }
+    .survey-list-item.is-active { border-color: var(--success); background: rgba(34,197,94,0.03); }
+    .survey-list-item.is-selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(132,150,248,0.12); }
+    .survey-list-item__top { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.6rem; }
+    .survey-list-item__title { font-weight: 600; font-size: 0.9rem; color: var(--dark); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .survey-list-item__meta { font-size: 0.775rem; color: var(--text-light); margin-bottom: 0.6rem; }
+    .survey-list-item__actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
 
     /* ── Results ── */
-    .results-empty {
-      text-align: center; padding: 2.5rem 1rem;
-      color: var(--text-light); font-size: 0.9rem;
-    }
+    .results-tabs { display: flex; gap: 0.25rem; background: var(--bg-light); border-radius: var(--radius); padding: 0.25rem; margin-bottom: 1.25rem; }
+    .results-tab { flex: 1; padding: 0.5rem; border: none; border-radius: 8px; font-size: 0.825rem; font-weight: 600; cursor: pointer; background: transparent; color: var(--text-light); font-family: inherit; transition: all var(--transition); }
+    .results-tab.active { background: var(--bg); color: var(--dark); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    .results-empty { text-align: center; padding: 2.5rem 1rem; color: var(--text-light); font-size: 0.9rem; }
     .result-question { margin-bottom: 1.75rem; }
-    .result-question__title {
-      font-size: 0.875rem; font-weight: 600; color: var(--dark);
-      margin-bottom: 0.75rem;
-    }
-    .result-stat {
-      display: flex; align-items: center; gap: 0.75rem;
-      margin-bottom: 0.5rem; font-size: 0.85rem;
-    }
-    .result-stat__label {
-      min-width: 110px; max-width: 110px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      color: var(--text);
-    }
-    .result-stat__bar-wrap {
-      flex: 1; background: var(--bg-light); border-radius: 100px; height: 10px; overflow: hidden;
-    }
-    .result-stat__bar {
-      height: 100%; background: var(--primary); border-radius: 100px;
-      transition: width 0.5s ease;
-    }
+    .result-question__title { font-size: 0.875rem; font-weight: 600; color: var(--dark); margin-bottom: 0.75rem; }
+    .result-stat { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; font-size: 0.85rem; }
+    .result-stat__label { min-width: 110px; max-width: 110px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+    .result-stat__bar-wrap { flex: 1; background: var(--bg-light); border-radius: 100px; height: 10px; overflow: hidden; }
+    .result-stat__bar { height: 100%; background: var(--primary); border-radius: 100px; transition: width 0.5s ease; }
     .result-stat__count { min-width: 40px; color: var(--text-light); text-align: right; }
-
-    .rating-summary {
-      display: flex; align-items: center; gap: 1.5rem;
-      padding: 1rem 1.25rem;
-      background: var(--bg-light); border-radius: var(--radius);
-    }
-    .rating-summary__avg {
-      font-size: 2.25rem; font-weight: 800; color: var(--primary); line-height: 1;
-    }
+    .rating-summary { display: flex; align-items: center; gap: 1.5rem; padding: 1rem 1.25rem; background: var(--bg-light); border-radius: var(--radius); }
+    .rating-summary__avg { font-size: 2.25rem; font-weight: 800; color: var(--primary); line-height: 1; }
     .rating-summary__info { font-size: 0.85rem; color: var(--text-light); }
     .rating-summary__info strong { display: block; font-size: 0.9rem; color: var(--text); }
-
-    /* ── Tabs ── */
-    .results-tabs {
-      display: flex; gap: 0.25rem;
-      background: var(--bg-light); border-radius: var(--radius);
-      padding: 0.25rem; margin-bottom: 1.25rem;
-    }
-    .results-tab {
-      flex: 1; padding: 0.5rem; border: none; border-radius: 8px;
-      font-size: 0.825rem; font-weight: 600; cursor: pointer;
-      background: transparent; color: var(--text-light);
-      font-family: inherit; transition: all var(--transition);
-    }
-    .results-tab.active {
-      background: var(--bg); color: var(--dark);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }
-
-    /* ── Individual results ── */
-    .individual-response {
-      border: 1px solid var(--border); border-radius: var(--radius);
-      margin-bottom: 0.75rem; overflow: hidden;
-    }
-    .individual-response__header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.75rem 1rem; background: var(--bg-light);
-      cursor: pointer; user-select: none;
-    }
-    .individual-response__name {
-      font-weight: 600; font-size: 0.875rem; color: var(--dark);
-    }
-    .individual-response__meta {
-      font-size: 0.775rem; color: var(--text-light);
-    }
-    .individual-response__body {
-      padding: 0.75rem 1rem; display: none;
-    }
+    .individual-response { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 0.75rem; overflow: hidden; }
+    .individual-response__header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-light); cursor: pointer; user-select: none; }
+    .individual-response__name { font-weight: 600; font-size: 0.875rem; color: var(--dark); }
+    .individual-response__meta { font-size: 0.775rem; color: var(--text-light); }
+    .individual-response__body { padding: 0.75rem 1rem; display: none; }
     .individual-response__body.open { display: block; }
-    .individual-answer {
-      font-size: 0.85rem; margin-bottom: 0.5rem;
-      padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
-    }
+    .individual-answer { font-size: 0.85rem; margin-bottom: 0.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
     .individual-answer:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
     .individual-answer__q { color: var(--text-light); margin-bottom: 0.2rem; }
     .individual-answer__a { color: var(--dark); font-weight: 500; }
-
-    .refresh-hint {
-      font-size: 0.775rem; color: var(--text-light); text-align: right;
-      margin-top: 0.75rem;
-    }
+    .refresh-hint { font-size: 0.775rem; color: var(--text-light); text-align: right; margin-top: 0.75rem; }
+    .divider { height: 1px; background: var(--border); margin: 1rem 0; }
 
     /* ── Toast ── */
-    .toast {
-      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
-      padding: 0.75rem 1.25rem; border-radius: var(--radius);
-      font-size: 0.875rem; font-weight: 600; color: white;
-      opacity: 0; transform: translateY(8px);
-      transition: opacity 0.25s, transform 0.25s;
-      pointer-events: none;
-    }
+    .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; padding: 0.75rem 1.25rem; border-radius: var(--radius); font-size: 0.875rem; font-weight: 600; color: white; opacity: 0; transform: translateY(8px); transition: opacity 0.25s, transform 0.25s; pointer-events: none; }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast--success { background: var(--success); }
     .toast--error { background: var(--danger); }
 
-    /* ── Divider ── */
-    .divider { height: 1px; background: var(--border); margin: 1rem 0; }
-
-    @media (max-width: 900px) {
-      .main { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 480px) {
-      .card { padding: 1.25rem; }
-      .topbar__title { display: none; }
-    }
+    @media (max-width: 1000px) { .main { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { .card { padding: 1.25rem; } .topbar__title { display: none; } }
   </style>
 </head>
 <body>
 
-<!-- ── Login Screen ─────────────────────────────────────────────────────── -->
+<!-- ── Login ── -->
 <div id="loginScreen">
   <div class="login-card">
-    <div class="login-card__logo">
-      <img src="img/logo.svg" alt="Lukas Watzenboeck">
-    </div>
+    <div class="login-card__logo"><img src="img/logo.svg" alt="Lukas Watzenboeck"></div>
     <h1>Admin-Bereich</h1>
     <p>Bitte gib dein Passwort ein um fortzufahren.</p>
-    <div class="login-error" id="loginError">Falsches Passwort. Bitte erneut versuchen.</div>
+    <div class="login-error" id="loginError">Falsches Passwort.</div>
     <div class="form-group">
       <input type="password" id="passwordInput" placeholder="Passwort" onkeydown="if(event.key==='Enter') doLogin()">
     </div>
@@ -323,38 +143,39 @@
   </div>
 </div>
 
-<!-- ── Dashboard ────────────────────────────────────────────────────────── -->
+<!-- ── Dashboard ── -->
 <div id="dashboard">
 
-  <!-- Topbar -->
   <div class="topbar">
     <div class="topbar__inner">
       <div class="topbar__left">
         <a href="index.html" class="topbar__logo"><img src="img/logo.svg" alt="Lukas Watzenboeck"></a>
         <span class="topbar__title">Umfrage-Dashboard</span>
       </div>
-      <div class="topbar__right">
+      <div style="display:flex;gap:0.75rem;align-items:center;">
         <span class="badge badge--inactive" id="statusBadge">Keine aktive Umfrage</span>
         <button class="btn btn--outline btn--sm" onclick="logout()">Abmelden</button>
       </div>
     </div>
   </div>
 
-  <!-- Main Grid -->
   <div class="main">
 
-    <!-- ── LEFT: Umfrage erstellen ──────────────────────────────────────── -->
+    <!-- ── LINKS: Neue Umfrage erstellen ── -->
     <div class="card">
       <div class="card__header">
         <div>
           <div class="card__title">Neue Umfrage erstellen</div>
-          <div class="card__subtitle">Bestehende Umfrage + Ergebnisse werden ersetzt</div>
+          <div class="card__subtitle" id="createSubtitle">Wird als neue Umfrage gespeichert</div>
         </div>
+        <button class="btn btn--outline btn--sm" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Abbrechen</button>
       </div>
 
+      <input type="hidden" id="editingSurveyId">
+
       <div class="form-group">
-        <label for="surveyTitle">Titel der Umfrage</label>
-        <input type="text" id="surveyTitle" placeholder="z.B. Feedback Workshop Maerz 2026">
+        <label for="surveyTitle">Titel</label>
+        <input type="text" id="surveyTitle" placeholder="z.B. Workshop Feedback Mai 2026">
       </div>
 
       <div class="divider"></div>
@@ -367,52 +188,65 @@
 
       <div class="divider"></div>
 
-      <button class="btn btn--primary btn--full" id="activateBtn" onclick="activateSurvey()">
-        &#9654; Umfrage aktivieren
+      <button class="btn btn--primary btn--full" id="saveBtn" onclick="saveSurvey()">
+        Umfrage speichern
       </button>
     </div>
 
-    <!-- ── RIGHT: Ergebnisse ────────────────────────────────────────────── -->
-    <div class="card">
-      <div class="card__header">
-        <div>
-          <div class="card__title">Aktuelle Ergebnisse</div>
-          <div class="card__subtitle">Aktualisiert alle 10 Sekunden</div>
+    <!-- ── RECHTS: Umfragen + Ergebnisse ── -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem;">
+
+      <!-- Umfragen-Liste -->
+      <div class="card">
+        <div class="card__header">
+          <div>
+            <div class="card__title">Meine Umfragen</div>
+            <div class="card__subtitle">Aktivieren, bearbeiten oder loeschen</div>
+          </div>
         </div>
-        <button class="btn btn--danger btn--sm" onclick="resetSurvey()">&#128465; Zuruecksetzen</button>
+        <div id="surveyListContainer">
+          <div class="results-empty">Noch keine Umfragen erstellt.</div>
+        </div>
       </div>
 
-      <!-- Tabs -->
-      <div class="results-tabs">
-        <button class="results-tab active" id="tabTotal" onclick="switchTab('total')">Gesamtergebnis</button>
-        <button class="results-tab" id="tabIndividual" onclick="switchTab('individual')">Einzelergebnisse</button>
+      <!-- Ergebnisse -->
+      <div class="card" id="resultsCard" style="display:none;">
+        <div class="card__header">
+          <div>
+            <div class="card__title" id="resultsTitle">Ergebnisse</div>
+            <div class="card__subtitle" id="resultsSubtitle">Aktualisiert alle 10 Sekunden</div>
+          </div>
+          <button class="btn btn--danger btn--sm" onclick="resetSelectedSurvey()">&#128465; Zuruecksetzen</button>
+        </div>
+
+        <div class="results-tabs">
+          <button class="results-tab active" id="tabTotal" onclick="switchTab('total')">Gesamtergebnis</button>
+          <button class="results-tab" id="tabIndividual" onclick="switchTab('individual')">Einzelergebnisse</button>
+        </div>
+
+        <div id="resultsContainer"></div>
+        <div id="individualContainer" style="display:none;"></div>
+        <div class="refresh-hint" id="refreshHint"></div>
       </div>
 
-      <div id="resultsContainer">
-        <div class="results-empty">Noch keine aktive Umfrage.</div>
-      </div>
-
-      <div id="individualContainer" style="display:none;"></div>
-
-      <div class="refresh-hint" id="refreshHint"></div>
     </div>
-
   </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-  // ── PASSWORT HIER AENDERN ────────────────────────────────────────────────
+  // ── PASSWORT ──────────────────────────────────────────────────────────────
   const ADMIN_PASSWORD = 'lukas';
-  // ────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
 
   let questionCounter = 0;
   let refreshInterval = null;
+  let selectedSurveyId = null;
+  let _activeTab = 'total';
+  let _allSurveys = {};
 
-  // ── Auth ─────────────────────────────────────────────────────────────────
-
+  // ── Auth ──────────────────────────────────────────────────────────────────
   function doLogin() {
     const input = document.getElementById('passwordInput').value;
     if (input === ADMIN_PASSWORD) {
@@ -436,172 +270,218 @@
   function showDashboard() {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('dashboard').style.display = 'block';
-    loadResults();
-    loadCurrentSurveyIntoForm();
-    refreshInterval = setInterval(loadResults, 10000);
+    addQuestion(); // leere Startfrage
+    loadAll();
+    refreshInterval = setInterval(() => {
+      loadAll();
+      if (selectedSurveyId) loadResults(selectedSurveyId);
+    }, 10000);
   }
 
-  // Check session on load
   window.addEventListener('DOMContentLoaded', () => {
-    if (sessionStorage.getItem('admin_auth') === '1') {
-      showDashboard();
-    } else {
-      setTimeout(() => document.getElementById('passwordInput').focus(), 100);
-    }
-    document.getElementById('passwordInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') doLogin();
-    });
+    if (sessionStorage.getItem('admin_auth') === '1') showDashboard();
+    else setTimeout(() => document.getElementById('passwordInput').focus(), 100);
+    document.getElementById('passwordInput').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
   });
 
-  // ── Question Builder ─────────────────────────────────────────────────────
+  // ── Load all surveys ──────────────────────────────────────────────────────
+  async function loadAll() {
+    try {
+      const res = await fetch('/api/surveys');
+      const data = await res.json();
+      _allSurveys = {};
+      (data.surveys || []).forEach(s => { _allSurveys[s.id] = s; });
+      renderSurveyList(data.surveys || [], data.activeSurveyId);
+      updateStatusBadge(data.activeSurveyId, data.surveys);
+      if (selectedSurveyId && _allSurveys[selectedSurveyId]) loadResults(selectedSurveyId);
+    } catch (e) { /* silent */ }
+  }
 
-  function addQuestion(prefill) {
-    questionCounter++;
-    const qid = 'q' + questionCounter;
-    const li = document.createElement('div');
-    li.className = 'question-item';
-    li.dataset.qid = qid;
+  // ── Survey List ───────────────────────────────────────────────────────────
+  function renderSurveyList(surveys, activeSurveyId) {
+    const container = document.getElementById('surveyListContainer');
+    if (!surveys.length) {
+      container.innerHTML = '<div class="results-empty">Noch keine Umfragen erstellt.</div>';
+      return;
+    }
 
-    li.innerHTML = `
-      <div class="question-item__row">
-        <div class="question-item__fields">
-          <input type="text" placeholder="Fragetext eingeben..." class="q-text"
-            value="${escHtml(prefill ? prefill.text : '')}">
-          <select class="q-type" onchange="onTypeChange(this)">
-            <option value="multiple_choice" ${prefill && prefill.type === 'multiple_choice' ? 'selected' : ''}>Multiple Choice</option>
-            <option value="rating" ${prefill && prefill.type === 'rating' ? 'selected' : ''}>Rating 1&ndash;10</option>
-          </select>
-          <div class="options-area"></div>
+    // neueste zuerst
+    const sorted = [...surveys].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    let html = '<div class="survey-list">';
+    sorted.forEach(s => {
+      const isActive = s.id === activeSurveyId;
+      const isSelected = s.id === selectedSurveyId;
+      const date = new Date(s.createdAt).toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' });
+      const qCount = (s.questions || []).length;
+
+      html += `<div class="survey-list-item ${isActive ? 'is-active' : ''} ${isSelected ? 'is-selected' : ''}" id="item_${s.id}">
+        <div class="survey-list-item__top">
+          <span class="survey-list-item__title" title="${escHtml(s.title)}">${escHtml(s.title)}</span>
+          <span class="badge ${isActive ? 'badge--active' : 'badge--inactive'}">${isActive ? 'Aktiv' : 'Inaktiv'}</span>
         </div>
-        <button class="question-item__remove" onclick="removeQuestion(this)" title="Frage entfernen">&times;</button>
-      </div>
-    `;
-
-    document.getElementById('questionList').appendChild(li);
-
-    if (!prefill || prefill.type === 'multiple_choice') {
-      initOptionsArea(li, prefill ? prefill.options : []);
-    }
-    // rating: no options area needed
-    if (prefill && prefill.type === 'rating') {
-      li.querySelector('.options-area').innerHTML = '';
-    }
+        <div class="survey-list-item__meta">${date} &middot; ${qCount} Frage${qCount !== 1 ? 'n' : ''}</div>
+        <div class="survey-list-item__actions">
+          ${isActive
+            ? `<button class="btn btn--outline btn--xs" onclick="deactivateSurvey('${s.id}')">Deaktivieren</button>`
+            : `<button class="btn btn--success btn--xs" onclick="activateSurvey('${s.id}')">Aktivieren</button>`
+          }
+          <button class="btn btn--outline btn--xs" onclick="showResults('${s.id}')">&#128202; Ergebnisse</button>
+          <button class="btn btn--outline btn--xs" onclick="editSurvey('${s.id}')">&#9998; Bearbeiten</button>
+          <button class="btn btn--danger btn--xs" onclick="deleteSurvey('${s.id}')">&#128465;</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+    container.innerHTML = html;
   }
 
-  function onTypeChange(sel) {
-    const item = sel.closest('.question-item');
-    const area = item.querySelector('.options-area');
-    if (sel.value === 'multiple_choice') {
-      initOptionsArea(item, []);
-    } else {
-      area.innerHTML = '';
-    }
+  // ── Activate / Deactivate ─────────────────────────────────────────────────
+  async function activateSurvey(id) {
+    try {
+      const res = await fetch('/api/activate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id }) });
+      if (res.ok) { showToast('Umfrage aktiviert!', 'success'); loadAll(); }
+      else { const e = await res.json(); showToast('Fehler: ' + (e.error || res.status), 'error'); }
+    } catch (e) { showToast('Netzwerkfehler', 'error'); }
   }
 
-  function initOptionsArea(item, existingOptions) {
-    const area = item.querySelector('.options-area');
-    area.innerHTML = `
-      <div class="options-list" id="opts_${item.dataset.qid}"></div>
-      <button class="btn btn--outline btn--sm" style="margin-top:0.5rem"
-        onclick="addOption('${item.dataset.qid}')">+ Option hinzufuegen</button>
-    `;
-    if (existingOptions && existingOptions.length) {
-      existingOptions.forEach(o => addOption(item.dataset.qid, o));
-    } else {
-      addOption(item.dataset.qid);
-      addOption(item.dataset.qid);
-    }
+  async function deactivateSurvey(id) {
+    try {
+      const res = await fetch('/api/deactivate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id }) });
+      if (res.ok) { showToast('Umfrage deaktiviert.', 'success'); loadAll(); }
+      else { const e = await res.json(); showToast('Fehler: ' + (e.error || res.status), 'error'); }
+    } catch (e) { showToast('Netzwerkfehler', 'error'); }
   }
 
-  function addOption(qid, value) {
-    const list = document.getElementById('opts_' + qid);
-    if (!list) return;
-    const row = document.createElement('div');
-    row.className = 'option-row';
-    row.innerHTML = `
-      <input type="text" placeholder="Option..." value="${escHtml(value || '')}">
-      <button class="btn btn--outline btn--sm" onclick="this.closest('.option-row').remove()">&#128465;</button>
-    `;
-    list.appendChild(row);
+  // ── Delete ────────────────────────────────────────────────────────────────
+  async function deleteSurvey(id) {
+    const s = _allSurveys[id];
+    if (!confirm(`"${s ? s.title : 'Umfrage'}" wirklich loeschen? Alle Ergebnisse gehen verloren.`)) return;
+    try {
+      const res = await fetch('/api/delete', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id }) });
+      if (res.ok) {
+        if (selectedSurveyId === id) { selectedSurveyId = null; document.getElementById('resultsCard').style.display = 'none'; }
+        showToast('Umfrage geloescht.', 'success'); loadAll();
+      } else { const e = await res.json(); showToast('Fehler: ' + (e.error || res.status), 'error'); }
+    } catch (e) { showToast('Netzwerkfehler', 'error'); }
   }
 
-  function removeQuestion(btn) {
-    btn.closest('.question-item').remove();
+  // ── Edit ──────────────────────────────────────────────────────────────────
+  function editSurvey(id) {
+    const s = _allSurveys[id];
+    if (!s) return;
+    document.getElementById('editingSurveyId').value = id;
+    document.getElementById('surveyTitle').value = s.title;
+    document.getElementById('questionList').innerHTML = '';
+    questionCounter = 0;
+    (s.questions || []).forEach(q => addQuestion(q));
+    document.getElementById('createSubtitle').textContent = 'Bestehende Umfrage bearbeiten';
+    document.getElementById('saveBtn').textContent = 'Aenderungen speichern';
+    document.getElementById('cancelEditBtn').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // ── Activate Survey ──────────────────────────────────────────────────────
+  function cancelEdit() {
+    document.getElementById('editingSurveyId').value = '';
+    document.getElementById('surveyTitle').value = '';
+    document.getElementById('questionList').innerHTML = '';
+    questionCounter = 0;
+    addQuestion();
+    document.getElementById('createSubtitle').textContent = 'Wird als neue Umfrage gespeichert';
+    document.getElementById('saveBtn').textContent = 'Umfrage speichern';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+  }
 
-  async function activateSurvey() {
+  // ── Save (create or update) ───────────────────────────────────────────────
+  async function saveSurvey() {
     const title = document.getElementById('surveyTitle').value.trim();
     if (!title) { showToast('Bitte gib einen Titel ein.', 'error'); return; }
 
     const items = document.querySelectorAll('.question-item');
-    if (items.length === 0) { showToast('Bitte fuege mindestens eine Frage hinzu.', 'error'); return; }
+    if (!items.length) { showToast('Bitte fuege mindestens eine Frage hinzu.', 'error'); return; }
 
     const questions = [];
     let valid = true;
-    items.forEach((item, i) => {
+    items.forEach(item => {
       const text = item.querySelector('.q-text').value.trim();
       if (!text) { valid = false; return; }
       const type = item.querySelector('.q-type').value;
       const q = { id: item.dataset.qid, text, type };
       if (type === 'multiple_choice') {
-        const opts = [...item.querySelectorAll('.options-list input[type="text"]')]
-          .map(el => el.value.trim()).filter(Boolean);
+        const opts = [...item.querySelectorAll('.options-list input[type="text"]')].map(el => el.value.trim()).filter(Boolean);
         if (opts.length < 2) { valid = false; return; }
         q.options = opts;
       }
       questions.push(q);
     });
+    if (!valid) { showToast('Alle Felder ausfuellen (min. 2 Optionen bei Multiple Choice).', 'error'); return; }
 
-    if (!valid) {
-      showToast('Bitte fuelle alle Felder aus (min. 2 Optionen bei Multiple Choice).', 'error');
-      return;
-    }
-
-    const btn = document.getElementById('activateBtn');
-    btn.disabled = true; btn.textContent = 'Wird aktiviert...';
+    const editingId = document.getElementById('editingSurveyId').value;
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.textContent = 'Wird gespeichert...';
 
     try {
+      if (editingId) {
+        // Update via delete + create (simple approach)
+        await fetch('/api/delete', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: editingId }) });
+      }
       const res = await fetch('/api/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({ title, questions })
       });
       if (res.ok) {
-        showToast('Umfrage erfolgreich aktiviert!', 'success');
-        loadResults();
-        updateStatusBadge(true, title);
+        showToast(editingId ? 'Umfrage aktualisiert!' : 'Umfrage gespeichert!', 'success');
+        cancelEdit();
+        loadAll();
       } else {
-        const err = await res.json().catch(() => ({}));
-        showToast('Fehler: ' + (err.error || 'Status ' + res.status), 'error');
+        const e = await res.json();
+        showToast('Fehler: ' + (e.error || res.status), 'error');
       }
-    } catch (e) {
-      showToast('Netzwerkfehler: ' + e.message, 'error');
-    }
-    btn.disabled = false; btn.textContent = '\u25B6 Umfrage aktivieren';
+    } catch (e) { showToast('Netzwerkfehler: ' + e.message, 'error'); }
+
+    btn.disabled = false; btn.textContent = document.getElementById('editingSurveyId').value ? 'Aenderungen speichern' : 'Umfrage speichern';
   }
 
-  // ── Reset ────────────────────────────────────────────────────────────────
+  // ── Show Results ──────────────────────────────────────────────────────────
+  function showResults(id) {
+    selectedSurveyId = id;
+    const s = _allSurveys[id];
+    document.getElementById('resultsTitle').textContent = 'Ergebnisse: ' + (s ? s.title : '');
+    document.getElementById('resultsCard').style.display = 'block';
+    // highlight selected
+    document.querySelectorAll('.survey-list-item').forEach(el => el.classList.remove('is-selected'));
+    const el = document.getElementById('item_' + id);
+    if (el) el.classList.add('is-selected');
+    loadResults(id);
+    document.getElementById('resultsCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
-  async function resetSurvey() {
-    if (!confirm('Alle Antworten wirklich loeschen?')) return;
+  async function loadResults(id) {
     try {
-      const res = await fetch('/api/reset', { method: 'POST' });
-      if (res.ok) {
-        showToast('Ergebnisse zurueckgesetzt.', 'success');
-        loadResults();
-      }
-    } catch (e) {
-      showToast('Fehler beim Zuruecksetzen.', 'error');
-    }
+      const [surveyRes, resultsRes] = await Promise.all([
+        fetch('/api/surveys'),
+        fetch('/api/results?id=' + id)
+      ]);
+      const surveysData = await surveyRes.json();
+      const results = await resultsRes.json();
+      const survey = (surveysData.surveys || []).find(s => s.id === id);
+      if (!survey) return;
+      renderResults(survey, results);
+      renderIndividual(survey, results);
+      document.getElementById('refreshHint').textContent = 'Zuletzt: ' + new Date().toLocaleTimeString('de-AT');
+    } catch (e) { /* silent */ }
   }
 
-  // ── Load Results ─────────────────────────────────────────────────────────
+  async function resetSelectedSurvey() {
+    if (!selectedSurveyId) return;
+    if (!confirm('Alle Antworten dieser Umfrage loeschen?')) return;
+    try {
+      const res = await fetch('/api/reset', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id: selectedSurveyId }) });
+      if (res.ok) { showToast('Ergebnisse zurueckgesetzt.', 'success'); loadResults(selectedSurveyId); }
+    } catch (e) { showToast('Fehler', 'error'); }
+  }
 
-  let _lastSurvey = null, _lastResults = null;
-  let _activeTab = 'total';
-
+  // ── Tabs ──────────────────────────────────────────────────────────────────
   function switchTab(tab) {
     _activeTab = tab;
     document.getElementById('tabTotal').classList.toggle('active', tab === 'total');
@@ -610,195 +490,104 @@
     document.getElementById('individualContainer').style.display = tab === 'individual' ? 'block' : 'none';
   }
 
-  async function loadResults() {
-    try {
-      const [surveyRes, resultsRes] = await Promise.all([
-        fetch('/api/survey'),
-        fetch('/api/results')
-      ]);
-      const survey = await surveyRes.json();
-      const results = await resultsRes.json();
-      _lastSurvey = survey; _lastResults = results;
-      renderResults(survey, results);
-      renderIndividual(survey, results);
-      updateStatusBadge(survey.active, survey.title);
-      const now = new Date();
-      document.getElementById('refreshHint').textContent =
-        'Zuletzt aktualisiert: ' + now.toLocaleTimeString('de-AT');
-    } catch (e) {
-      // silent
-    }
-  }
-
+  // ── Render Aggregate ──────────────────────────────────────────────────────
   function renderResults(survey, results) {
     const container = document.getElementById('resultsContainer');
     const responses = results.responses || [];
+    if (!responses.length) { container.innerHTML = '<div class="results-empty">Noch keine Antworten.</div>'; return; }
 
-    if (!survey.active || !survey.questions || survey.questions.length === 0) {
-      container.innerHTML = '<div class="results-empty">Noch keine aktive Umfrage.</div>';
-      return;
-    }
-
-    if (responses.length === 0) {
-      container.innerHTML = '<div class="results-empty">Noch keine Antworten eingegangen.<br>Teile den Link <strong>/survey</strong> mit deinen Teilnehmern.</div>';
-      return;
-    }
-
-    let html = `<div style="font-size:0.85rem; color:var(--text-light); margin-bottom:1.25rem;">
-      <strong style="color:var(--text)">${responses.length}</strong> Antwort${responses.length === 1 ? '' : 'en'} eingegangen
-    </div>`;
-
-    survey.questions.forEach(q => {
-      html += `<div class="result-question">`;
-      html += `<div class="result-question__title">${escHtml(q.text)}</div>`;
-
+    let html = `<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:1.25rem;"><strong style="color:var(--text)">${responses.length}</strong> Antwort${responses.length===1?'':'en'} eingegangen</div>`;
+    (survey.questions || []).forEach(q => {
+      html += `<div class="result-question"><div class="result-question__title">${escHtml(q.text)}</div>`;
       if (q.type === 'multiple_choice') {
-        const counts = {};
-        (q.options || []).forEach(o => counts[o] = 0);
-        responses.forEach(r => {
-          const ans = r.answers[q.id];
-          if (Array.isArray(ans)) ans.forEach(a => { if (counts[a] !== undefined) counts[a]++; });
-        });
+        const counts = {}; (q.options||[]).forEach(o => counts[o]=0);
+        responses.forEach(r => { const ans = r.answers[q.id]; if (Array.isArray(ans)) ans.forEach(a => { if (counts[a]!==undefined) counts[a]++; }); });
         const maxCount = Math.max(1, ...Object.values(counts));
         Object.entries(counts).forEach(([opt, count]) => {
-          const pct = Math.round((count / maxCount) * 100);
-          const pctOfTotal = responses.length > 0 ? Math.round((count / responses.length) * 100) : 0;
-          html += `<div class="result-stat">
-            <div class="result-stat__label" title="${escHtml(opt)}">${escHtml(opt)}</div>
-            <div class="result-stat__bar-wrap">
-              <div class="result-stat__bar" style="width:${pct}%"></div>
-            </div>
-            <div class="result-stat__count">${count} <span style="color:var(--text-light);font-size:0.75rem">(${pctOfTotal}%)</span></div>
-          </div>`;
+          const pct = Math.round((count/maxCount)*100);
+          const pctTotal = Math.round((count/responses.length)*100);
+          html += `<div class="result-stat"><div class="result-stat__label" title="${escHtml(opt)}">${escHtml(opt)}</div><div class="result-stat__bar-wrap"><div class="result-stat__bar" style="width:${pct}%"></div></div><div class="result-stat__count">${count} <span style="font-size:.75rem">(${pctTotal}%)</span></div></div>`;
         });
-
       } else if (q.type === 'rating') {
-        const vals = responses
-          .map(r => r.answers[q.id])
-          .filter(v => typeof v === 'number' && v >= 1 && v <= 10);
-        if (vals.length === 0) {
-          html += `<div class="results-empty" style="padding:1rem">Noch keine Bewertungen.</div>`;
-        } else {
-          const avg = (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
-          // Distribution bars
-          const dist = {};
-          for (let i = 1; i <= 10; i++) dist[i] = 0;
-          vals.forEach(v => dist[v]++);
-          const maxDist = Math.max(1, ...Object.values(dist));
-          html += `<div class="rating-summary" style="margin-bottom:0.75rem">
-            <div class="rating-summary__avg">${avg}</div>
-            <div class="rating-summary__info">
-              <strong>Durchschnitt</strong>
-              ${vals.length} Bewertung${vals.length === 1 ? '' : 'en'}
-            </div>
-          </div>`;
-          html += `<div>`;
-          for (let i = 1; i <= 10; i++) {
-            const pct = Math.round((dist[i] / maxDist) * 100);
-            html += `<div class="result-stat">
-              <div class="result-stat__label">${i}</div>
-              <div class="result-stat__bar-wrap">
-                <div class="result-stat__bar" style="width:${pct}%"></div>
-              </div>
-              <div class="result-stat__count">${dist[i]}</div>
-            </div>`;
-          }
-          html += `</div>`;
+        const vals = responses.map(r => r.answers[q.id]).filter(v => typeof v==='number');
+        if (!vals.length) { html += '<div class="results-empty" style="padding:1rem">Keine Bewertungen.</div>'; }
+        else {
+          const avg = (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1);
+          const dist = {}; for(let i=1;i<=10;i++) dist[i]=0; vals.forEach(v=>dist[v]++);
+          const maxDist = Math.max(1,...Object.values(dist));
+          html += `<div class="rating-summary" style="margin-bottom:.75rem"><div class="rating-summary__avg">${avg}</div><div class="rating-summary__info"><strong>Durchschnitt</strong>${vals.length} Bewertung${vals.length===1?'':'en'}</div></div>`;
+          for(let i=1;i<=10;i++) { const pct=Math.round((dist[i]/maxDist)*100); html+=`<div class="result-stat"><div class="result-stat__label">${i}</div><div class="result-stat__bar-wrap"><div class="result-stat__bar" style="width:${pct}%"></div></div><div class="result-stat__count">${dist[i]}</div></div>`; }
         }
       }
-
-      html += `</div>`;
+      html += '</div>';
     });
-
     container.innerHTML = html;
   }
 
-  // ── Individual Results ────────────────────────────────────────────────────
-
+  // ── Render Individual ─────────────────────────────────────────────────────
   function renderIndividual(survey, results) {
     const container = document.getElementById('individualContainer');
     const responses = results.responses || [];
-
-    if (!survey.active || !survey.questions || survey.questions.length === 0) {
-      container.innerHTML = '<div class="results-empty">Noch keine aktive Umfrage.</div>';
-      return;
-    }
-    if (responses.length === 0) {
-      container.innerHTML = '<div class="results-empty">Noch keine Antworten eingegangen.</div>';
-      return;
-    }
-
-    const qMap = {};
-    (survey.questions || []).forEach(q => { qMap[q.id] = q; });
-
-    let html = `<div style="font-size:0.85rem; color:var(--text-light); margin-bottom:1rem;">
-      <strong style="color:var(--text)">${responses.length}</strong> Antwort${responses.length === 1 ? '' : 'en'} eingegangen
-    </div>`;
-
+    if (!responses.length) { container.innerHTML = '<div class="results-empty">Noch keine Antworten.</div>'; return; }
+    const qMap = {}; (survey.questions||[]).forEach(q => { qMap[q.id]=q; });
+    let html = `<div style="font-size:.85rem;color:var(--text-light);margin-bottom:1rem;"><strong style="color:var(--text)">${responses.length}</strong> Antwort${responses.length===1?'':'en'}</div>`;
     responses.slice().reverse().forEach((r, i) => {
       const idx = responses.length - i;
-      const time = new Date(r.timestamp).toLocaleString('de-AT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const time = new Date(r.timestamp).toLocaleString('de-AT', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
       const uid = 'resp_' + i;
-      html += `<div class="individual-response">
-        <div class="individual-response__header" onclick="toggleResponse('${uid}')">
-          <span class="individual-response__name">${escHtml(r.name || 'Anonym')}</span>
-          <span class="individual-response__meta">#${idx} &middot; ${time}</span>
-        </div>
-        <div class="individual-response__body" id="${uid}">`;
-
+      html += `<div class="individual-response"><div class="individual-response__header" onclick="toggleResponse('${uid}')"><span class="individual-response__name">${escHtml(r.name||'Anonym')}</span><span class="individual-response__meta">#${idx} &middot; ${time}</span></div><div class="individual-response__body" id="${uid}">`;
       Object.entries(r.answers).forEach(([qid, ans]) => {
-        const q = qMap[qid];
-        if (!q) return;
-        let ansText = '';
-        if (Array.isArray(ans)) {
-          ansText = ans.length ? ans.join(', ') : '—';
-        } else {
-          ansText = ans + ' / 10';
-        }
-        html += `<div class="individual-answer">
-          <div class="individual-answer__q">${escHtml(q.text)}</div>
-          <div class="individual-answer__a">${escHtml(String(ansText))}</div>
-        </div>`;
+        const q = qMap[qid]; if (!q) return;
+        const ansText = Array.isArray(ans) ? (ans.length ? ans.join(', ') : '—') : ans + ' / 10';
+        html += `<div class="individual-answer"><div class="individual-answer__q">${escHtml(q.text)}</div><div class="individual-answer__a">${escHtml(String(ansText))}</div></div>`;
       });
-
-      html += `</div></div>`;
+      html += '</div></div>';
     });
-
     container.innerHTML = html;
   }
 
-  function toggleResponse(uid) {
-    const body = document.getElementById(uid);
-    body.classList.toggle('open');
+  function toggleResponse(uid) { document.getElementById(uid).classList.toggle('open'); }
+
+  // ── Question Builder ──────────────────────────────────────────────────────
+  function addQuestion(prefill) {
+    questionCounter++;
+    const qid = 'q' + questionCounter;
+    const li = document.createElement('div');
+    li.className = 'question-item'; li.dataset.qid = qid;
+    li.innerHTML = `<div class="question-item__row"><div class="question-item__fields"><input type="text" placeholder="Fragetext..." class="q-text" value="${escHtml(prefill?prefill.text:'')}"><select class="q-type" onchange="onTypeChange(this)"><option value="multiple_choice" ${prefill&&prefill.type==='multiple_choice'?'selected':''}>Multiple Choice</option><option value="rating" ${prefill&&prefill.type==='rating'?'selected':''}>Rating 1&ndash;10</option></select><div class="options-area"></div></div><button class="question-item__remove" onclick="removeQuestion(this)" title="Entfernen">&times;</button></div>`;
+    document.getElementById('questionList').appendChild(li);
+    if (!prefill || prefill.type === 'multiple_choice') initOptionsArea(li, prefill ? prefill.options : []);
   }
 
-  // ── Load current survey into form ────────────────────────────────────────
-
-  async function loadCurrentSurveyIntoForm() {
-    try {
-      const res = await fetch('/api/survey');
-      const survey = await res.json();
-      document.getElementById('questionList').innerHTML = '';
-      questionCounter = 0;
-      if (survey.active && survey.title) {
-        document.getElementById('surveyTitle').value = survey.title;
-        (survey.questions || []).forEach(q => addQuestion(q));
-      } else {
-        // Standardmaessig eine leere Frage anzeigen
-        addQuestion();
-      }
-    } catch (e) {
-      addQuestion();
-    }
+  function onTypeChange(sel) {
+    const item = sel.closest('.question-item');
+    item.querySelector('.options-area').innerHTML = '';
+    if (sel.value === 'multiple_choice') initOptionsArea(item, []);
   }
 
-  // ── Status Badge ─────────────────────────────────────────────────────────
+  function initOptionsArea(item, existing) {
+    const area = item.querySelector('.options-area');
+    area.innerHTML = `<div class="options-list" id="opts_${item.dataset.qid}"></div><button class="btn btn--outline btn--sm" style="margin-top:.5rem" onclick="addOption('${item.dataset.qid}')">+ Option</button>`;
+    if (existing && existing.length) existing.forEach(o => addOption(item.dataset.qid, o));
+    else { addOption(item.dataset.qid); addOption(item.dataset.qid); }
+  }
 
-  function updateStatusBadge(active, title) {
+  function addOption(qid, value) {
+    const list = document.getElementById('opts_' + qid); if (!list) return;
+    const row = document.createElement('div'); row.className = 'option-row';
+    row.innerHTML = `<input type="text" placeholder="Option..." value="${escHtml(value||'')}"><button class="btn btn--outline btn--sm" onclick="this.closest('.option-row').remove()">&#128465;</button>`;
+    list.appendChild(row);
+  }
+
+  function removeQuestion(btn) { btn.closest('.question-item').remove(); }
+
+  // ── Status Badge ──────────────────────────────────────────────────────────
+  function updateStatusBadge(activeSurveyId, surveys) {
     const badge = document.getElementById('statusBadge');
-    if (active && title) {
+    const active = activeSurveyId && surveys ? surveys.find(s => s.id === activeSurveyId) : null;
+    if (active) {
       badge.className = 'badge badge--active';
-      badge.textContent = 'Aktiv: ' + title.substring(0, 30) + (title.length > 30 ? '...' : '');
+      badge.textContent = 'Aktiv: ' + active.title.substring(0, 28) + (active.title.length > 28 ? '...' : '');
     } else {
       badge.className = 'badge badge--inactive';
       badge.textContent = 'Keine aktive Umfrage';
@@ -806,26 +595,17 @@
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────────
-
   let toastTimer = null;
   function showToast(msg, type) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `toast toast--${type} show`;
+    t.textContent = msg; t.className = `toast toast--${type} show`;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { t.classList.remove('show'); }, 5000);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
   }
-
-  // ── Utils ─────────────────────────────────────────────────────────────────
 
   function escHtml(str) {
-    return String(str || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 </script>
-
 </body>
 </html>
