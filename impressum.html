@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Impressum - LW Consulting GmbH">
+  <title>Impressum | Lukas Watzenboeck</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="container nav__inner">
+      <a href="index.html" class="nav__logo"><img src="img/logo.svg" alt="Lukas Watzenboeck"></a>
+      <ul class="nav__links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="ueber-mich.html">Ueber mich</a></li>
+        <li class="nav__dropdown">
+          <button class="nav__dropdown-toggle">Coaching / Beratung <span class="nav__dropdown-arrow">&#9660;</span></button>
+          <div class="nav__dropdown-menu">
+            <a href="unternehmercoaching.html">Unternehmercoaching</a>
+            <a href="mitarbeitercoaching.html">Mitarbeitercoaching</a>
+            <a href="business-beratung.html">Business-Beratung</a>
+          </div>
+        </li>
+        <li><a href="disc-test.html">Persoenlichkeitstyp</a></li>
+        <li><a href="kontakt.html" class="nav__cta">Kontakt</a></li>
+      </ul>
+      <button class="nav__toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <h1>Impressum</h1>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="section">
+    <div class="container" style="max-width: 760px;">
+      <h3 style="margin-bottom: 1.5rem;">LW Consulting GmbH</h3>
+
+      <p style="margin-bottom: 1.5rem;">
+        Carl-Auer-von-Welsbach-Strasse 6a<br>
+        4614 Marchtrenk<br>
+        Oesterreich
+      </p>
+
+      <p style="margin-bottom: 1.5rem;">
+        <strong>Web:</strong> <a href="http://www.lukaswatzenboeck.com">www.lukaswatzenboeck.com</a><br>
+        <strong>E-Mail:</strong> <a href="mailto:office@lw-consulting.at">office@lw-consulting.at</a>
+      </p>
+
+      <p style="margin-bottom: 1.5rem;">
+        <strong>Firmenbuch:</strong> Landesgericht Wels, FN 664091f<br>
+        <strong>UID-Oesterreich:</strong> ATU82606146
+      </p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a href="index.html" class="nav__logo"><img src="img/logo-white.svg" alt="Lukas Watzenboeck" style="height: 36px;"></a>
+          <p>Coach & Berater fuer Unternehmer und Mitarbeiter. Fuer mehr Klarheit, Struktur und Erfolg im Business.</p>
+        </div>
+        <div>
+          <h4>Leistungen</h4>
+          <ul class="footer__links">
+            <li><a href="unternehmercoaching.html">Unternehmercoaching</a></li>
+            <li><a href="mitarbeitercoaching.html">Mitarbeitercoaching</a></li>
+            <li><a href="business-beratung.html">Business-Beratung</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Unternehmen</h4>
+          <ul class="footer__links">
+            <li><a href="ueber-mich.html">Ueber mich</a></li>
+            <li><a href="disc-test.html">Persoenlichkeitstyp</a></li>
+            <li><a href="kontakt.html">Kontakt</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Rechtliches</h4>
+          <ul class="footer__links">
+            <li><a href="impressum.html">Impressum</a></li>
+            <li><a href="datenschutz.html">Datenschutz</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>&copy; 2026 LW Consulting GmbH. Alle Rechte vorbehalten.</span>
+        <div class="footer__social">
+          <a href="#" aria-label="LinkedIn">in</a>
+          <a href="#" aria-label="Instagram">ig</a>
+          <a href="#" aria-label="Facebook">fb</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('navToggle');
+    const links = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+
+    // Dropdown toggle (mobile)
+    document.querySelectorAll('.nav__dropdown-toggle').forEach(btn => {
+      btn.addEventListener('click', () => btn.closest('.nav__dropdown').classList.toggle('open'));
+    });
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 20));
+  </script>
+
+</body>
+</html>
