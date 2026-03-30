@@ -16,9 +16,14 @@
       <ul class="nav__links" id="navLinks">
         <li><a href="index.html" class="active">Home</a></li>
         <li><a href="ueber-mich.html">Ueber mich</a></li>
-        <li><a href="unternehmercoaching.html">Unternehmercoaching</a></li>
-        <li><a href="mitarbeitercoaching.html">Mitarbeitercoaching</a></li>
-        <li><a href="business-beratung.html">Business-Beratung</a></li>
+        <li class="nav__dropdown">
+          <button class="nav__dropdown-toggle">Coaching / Beratung <span class="nav__dropdown-arrow">&#9660;</span></button>
+          <div class="nav__dropdown-menu">
+            <a href="unternehmercoaching.html">Unternehmercoaching</a>
+            <a href="mitarbeitercoaching.html">Mitarbeitercoaching</a>
+            <a href="business-beratung.html">Business-Beratung</a>
+          </div>
+        </li>
         <li><a href="disc-test.html">Persoenlichkeitstyp</a></li>
         <li><a href="blog.html">Blog</a></li>
         <li><a href="kontakt.html" class="nav__cta">Kontakt</a></li>
@@ -248,6 +253,11 @@
     const toggle = document.getElementById('navToggle');
     const links = document.getElementById('navLinks');
     toggle.addEventListener('click', () => links.classList.toggle('open'));
+
+    // Dropdown toggle (mobile)
+    document.querySelectorAll('.nav__dropdown-toggle').forEach(btn => {
+      btn.addEventListener('click', () => btn.closest('.nav__dropdown').classList.toggle('open'));
+    });
 
     // Nav scroll effect
     const nav = document.getElementById('nav');

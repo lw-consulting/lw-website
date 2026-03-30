@@ -207,6 +207,90 @@ img {
   color: #fff !important;
 }
 
+/* Dropdown Menu */
+.nav__dropdown {
+  position: relative;
+}
+
+.nav__dropdown-toggle {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  font-family: inherit;
+  position: relative;
+}
+
+.nav__dropdown-toggle::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  transition: width var(--transition);
+}
+
+.nav__dropdown:hover .nav__dropdown-toggle::after {
+  width: 100%;
+}
+
+.nav__dropdown-arrow {
+  font-size: 0.6rem;
+  transition: transform var(--transition);
+}
+
+.nav__dropdown:hover .nav__dropdown-arrow {
+  transform: rotate(180deg);
+}
+
+.nav__dropdown-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(40,40,40,0.08);
+  padding: 0.5rem 0;
+  min-width: 220px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.nav__dropdown:hover .nav__dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  top: calc(100% + 4px);
+}
+
+.nav__dropdown-menu a {
+  display: block;
+  padding: 0.6rem 1.25rem !important;
+  font-size: 0.85rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.nav__dropdown-menu a::after {
+  display: none !important;
+}
+
+.nav__dropdown-menu a:hover {
+  background: rgba(132,150,248,0.06);
+  color: var(--primary);
+}
+
 /* Mobile Menu */
 .nav__toggle {
   display: none;
@@ -880,6 +964,27 @@ img {
   }
 
   .nav__links li {
+    width: 100%;
+  }
+
+  .nav__dropdown-menu {
+    position: static;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    opacity: 1;
+    visibility: visible;
+    padding: 0 0 0 1rem;
+    min-width: 0;
+    display: none;
+  }
+
+  .nav__dropdown.open .nav__dropdown-menu {
+    display: block;
+  }
+
+  .nav__dropdown-toggle {
+    padding: 0.75rem 0;
     width: 100%;
   }
 
