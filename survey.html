@@ -271,6 +271,14 @@
 
       <!-- Survey form -->
       <div class="survey-card" id="surveyForm" style="display:none;">
+        <!-- Name -->
+        <div class="question" id="nameQuestion">
+          <div class="question__label">
+            <span class="question__num">&#10003;</span>
+            <span>Dein Name</span>
+          </div>
+          <input type="text" id="participantName" placeholder="Vor- und Nachname..." style="width:100%; padding:0.75rem 1rem; border:2px solid var(--border); border-radius:var(--radius); font-size:0.95rem; font-family:inherit; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+        </div>
         <div id="questionsContainer"></div>
         <button class="btn btn--primary btn--full" id="submitBtn" onclick="submitSurvey()">
           Antworten absenden
@@ -396,11 +404,13 @@
         }
       });
 
+      const name = document.getElementById('participantName').value.trim() || 'Anonym';
+
       try {
         const res = await fetch('/api/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ answers })
+          body: JSON.stringify({ name, answers })
         });
         if (res.ok) {
           document.getElementById('surveyForm').style.display = 'none';

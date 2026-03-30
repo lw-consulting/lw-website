@@ -103,7 +103,7 @@ http.createServer((req, res) => {
       if (err) { apiResponse(res, 400, { error: 'Invalid JSON' }); return; }
       try {
         const results = getResults();
-        results.responses.push({ timestamp: new Date().toISOString(), answers: body.answers || {} });
+        results.responses.push({ timestamp: new Date().toISOString(), name: body.name || 'Anonym', answers: body.answers || {} });
         writeJSON('survey_results.json', results);
         apiResponse(res, 200, { ok: true });
       } catch (e) { apiResponse(res, 500, { error: e.message }); }

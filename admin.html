@@ -230,6 +230,51 @@
     .rating-summary__info { font-size: 0.85rem; color: var(--text-light); }
     .rating-summary__info strong { display: block; font-size: 0.9rem; color: var(--text); }
 
+    /* ── Tabs ── */
+    .results-tabs {
+      display: flex; gap: 0.25rem;
+      background: var(--bg-light); border-radius: var(--radius);
+      padding: 0.25rem; margin-bottom: 1.25rem;
+    }
+    .results-tab {
+      flex: 1; padding: 0.5rem; border: none; border-radius: 8px;
+      font-size: 0.825rem; font-weight: 600; cursor: pointer;
+      background: transparent; color: var(--text-light);
+      font-family: inherit; transition: all var(--transition);
+    }
+    .results-tab.active {
+      background: var(--bg); color: var(--dark);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    /* ── Individual results ── */
+    .individual-response {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      margin-bottom: 0.75rem; overflow: hidden;
+    }
+    .individual-response__header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.75rem 1rem; background: var(--bg-light);
+      cursor: pointer; user-select: none;
+    }
+    .individual-response__name {
+      font-weight: 600; font-size: 0.875rem; color: var(--dark);
+    }
+    .individual-response__meta {
+      font-size: 0.775rem; color: var(--text-light);
+    }
+    .individual-response__body {
+      padding: 0.75rem 1rem; display: none;
+    }
+    .individual-response__body.open { display: block; }
+    .individual-answer {
+      font-size: 0.85rem; margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+    }
+    .individual-answer:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+    .individual-answer__q { color: var(--text-light); margin-bottom: 0.2rem; }
+    .individual-answer__a { color: var(--dark); font-weight: 500; }
+
     .refresh-hint {
       font-size: 0.775rem; color: var(--text-light); text-align: right;
       margin-top: 0.75rem;
@@ -337,9 +382,17 @@
         <button class="btn btn--danger btn--sm" onclick="resetSurvey()">&#128465; Zuruecksetzen</button>
       </div>
 
+      <!-- Tabs -->
+      <div class="results-tabs">
+        <button class="results-tab active" id="tabTotal" onclick="switchTab('total')">Gesamtergebnis</button>
+        <button class="results-tab" id="tabIndividual" onclick="switchTab('individual')">Einzelergebnisse</button>
+      </div>
+
       <div id="resultsContainer">
         <div class="results-empty">Noch keine aktive Umfrage.</div>
       </div>
+
+      <div id="individualContainer" style="display:none;"></div>
 
       <div class="refresh-hint" id="refreshHint"></div>
     </div>
@@ -546,6 +599,17 @@
 
   // ── Load Results ─────────────────────────────────────────────────────────
 
+  let _lastSurvey = null, _lastResults = null;
+  let _activeTab = 'total';
+
+  function switchTab(tab) {
+    _activeTab = tab;
+    document.getElementById('tabTotal').classList.toggle('active', tab === 'total');
+    document.getElementById('tabIndividual').classList.toggle('active', tab === 'individual');
+    document.getElementById('resultsContainer').style.display = tab === 'total' ? 'block' : 'none';
+    document.getElementById('individualContainer').style.display = tab === 'individual' ? 'block' : 'none';
+  }
+
   async function loadResults() {
     try {
       const [surveyRes, resultsRes] = await Promise.all([
@@ -554,7 +618,9 @@
       ]);
       const survey = await surveyRes.json();
       const results = await resultsRes.json();
+      _lastSurvey = survey; _lastResults = results;
       renderResults(survey, results);
+      renderIndividual(survey, results);
       updateStatusBadge(survey.active, survey.title);
       const now = new Date();
       document.getElementById('refreshHint').textContent =
@@ -645,6 +711,65 @@
     });
 
     container.innerHTML = html;
+  }
+
+  // ── Individual Results ────────────────────────────────────────────────────
+
+  function renderIndividual(survey, results) {
+    const container = document.getElementById('individualContainer');
+    const responses = results.responses || [];
+
+    if (!survey.active || !survey.questions || survey.questions.length === 0) {
+      container.innerHTML = '<div class="results-empty">Noch keine aktive Umfrage.</div>';
+      return;
+    }
+    if (responses.length === 0) {
+      container.innerHTML = '<div class="results-empty">Noch keine Antworten eingegangen.</div>';
+      return;
+    }
+
+    const qMap = {};
+    (survey.questions || []).forEach(q => { qMap[q.id] = q; });
+
+    let html = `<div style="font-size:0.85rem; color:var(--text-light); margin-bottom:1rem;">
+      <strong style="color:var(--text)">${responses.length}</strong> Antwort${responses.length === 1 ? '' : 'en'} eingegangen
+    </div>`;
+
+    responses.slice().reverse().forEach((r, i) => {
+      const idx = responses.length - i;
+      const time = new Date(r.timestamp).toLocaleString('de-AT', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const uid = 'resp_' + i;
+      html += `<div class="individual-response">
+        <div class="individual-response__header" onclick="toggleResponse('${uid}')">
+          <span class="individual-response__name">${escHtml(r.name || 'Anonym')}</span>
+          <span class="individual-response__meta">#${idx} &middot; ${time}</span>
+        </div>
+        <div class="individual-response__body" id="${uid}">`;
+
+      Object.entries(r.answers).forEach(([qid, ans]) => {
+        const q = qMap[qid];
+        if (!q) return;
+        let ansText = '';
+        if (Array.isArray(ans)) {
+          ansText = ans.length ? ans.join(', ') : '—';
+        } else {
+          ansText = ans + ' / 10';
+        }
+        html += `<div class="individual-answer">
+          <div class="individual-answer__q">${escHtml(q.text)}</div>
+          <div class="individual-answer__a">${escHtml(String(ansText))}</div>
+        </div>`;
+      });
+
+      html += `</div></div>`;
+    });
+
+    container.innerHTML = html;
+  }
+
+  function toggleResponse(uid) {
+    const body = document.getElementById(uid);
+    body.classList.toggle('open');
   }
 
   // ── Load current survey into form ────────────────────────────────────────
