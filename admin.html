@@ -518,6 +518,10 @@
           html += `<div class="rating-summary" style="margin-bottom:.75rem"><div class="rating-summary__avg">${avg}</div><div class="rating-summary__info"><strong>Durchschnitt</strong>${vals.length} Bewertung${vals.length===1?'':'en'}</div></div>`;
           for(let i=1;i<=10;i++) { const pct=Math.round((dist[i]/maxDist)*100); html+=`<div class="result-stat"><div class="result-stat__label">${i}</div><div class="result-stat__bar-wrap"><div class="result-stat__bar" style="width:${pct}%"></div></div><div class="result-stat__count">${dist[i]}</div></div>`; }
         }
+      } else if (q.type === 'text') {
+        const texts = responses.map(r => r.answers[q.id]).filter(v => typeof v==='string' && v.trim());
+        if (!texts.length) { html += '<div class="results-empty" style="padding:1rem">Keine Antworten.</div>'; }
+        else { texts.forEach(t => { html += `<div style="padding:.6rem .9rem;background:var(--bg-light);border-radius:var(--radius);font-size:.875rem;margin-bottom:.5rem;color:var(--dark)">${escHtml(t)}</div>`; }); }
       }
       html += '</div>';
     });
@@ -538,7 +542,7 @@
       html += `<div class="individual-response"><div class="individual-response__header" onclick="toggleResponse('${uid}')"><span class="individual-response__name">${escHtml(r.name||'Anonym')}</span><span class="individual-response__meta">#${idx} &middot; ${time}</span></div><div class="individual-response__body" id="${uid}">`;
       Object.entries(r.answers).forEach(([qid, ans]) => {
         const q = qMap[qid]; if (!q) return;
-        const ansText = Array.isArray(ans) ? (ans.length ? ans.join(', ') : '—') : ans + ' / 10';
+        const ansText = Array.isArray(ans) ? (ans.length ? ans.join(', ') : '—') : (q.type === 'rating' ? ans + ' / 10' : (ans || '—'));
         html += `<div class="individual-answer"><div class="individual-answer__q">${escHtml(q.text)}</div><div class="individual-answer__a">${escHtml(String(ansText))}</div></div>`;
       });
       html += '</div></div>';
@@ -554,7 +558,7 @@
     const qid = 'q' + questionCounter;
     const li = document.createElement('div');
     li.className = 'question-item'; li.dataset.qid = qid;
-    li.innerHTML = `<div class="question-item__row"><div class="question-item__fields"><input type="text" placeholder="Fragetext..." class="q-text" value="${escHtml(prefill?prefill.text:'')}"><select class="q-type" onchange="onTypeChange(this)"><option value="multiple_choice" ${prefill&&prefill.type==='multiple_choice'?'selected':''}>Multiple Choice</option><option value="rating" ${prefill&&prefill.type==='rating'?'selected':''}>Rating 1&ndash;10</option></select><div class="options-area"></div></div><button class="question-item__remove" onclick="removeQuestion(this)" title="Entfernen">&times;</button></div>`;
+    li.innerHTML = `<div class="question-item__row"><div class="question-item__fields"><input type="text" placeholder="Fragetext..." class="q-text" value="${escHtml(prefill?prefill.text:'')}"><select class="q-type" onchange="onTypeChange(this)"><option value="multiple_choice" ${prefill&&prefill.type==='multiple_choice'?'selected':''}>Multiple Choice</option><option value="rating" ${prefill&&prefill.type==='rating'?'selected':''}>Rating 1&ndash;10</option><option value="text" ${prefill&&prefill.type==='text'?'selected':''}>Freitext</option></select><div class="options-area"></div></div><button class="question-item__remove" onclick="removeQuestion(this)" title="Entfernen">&times;</button></div>`;
     document.getElementById('questionList').appendChild(li);
     if (!prefill || prefill.type === 'multiple_choice') initOptionsArea(li, prefill ? prefill.options : []);
   }

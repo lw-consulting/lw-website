@@ -228,6 +228,16 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* Free text */
+    .text-answer {
+      width: 100%; padding: 0.75rem 1rem;
+      border: 2px solid var(--border); border-radius: var(--radius);
+      font-size: 0.95rem; font-family: inherit; color: var(--text);
+      resize: vertical; min-height: 100px; outline: none;
+      transition: border-color var(--transition);
+    }
+    .text-answer:focus { border-color: var(--primary); }
+
     @media (max-width: 640px) {
       .survey-card { padding: 1.5rem; }
     }
@@ -360,6 +370,12 @@
             opts.appendChild(l);
           });
           div.appendChild(opts);
+        } else if (q.type === 'text') {
+          const ta = document.createElement('textarea');
+          ta.className = 'text-answer';
+          ta.name = q.id;
+          ta.placeholder = 'Deine Antwort...';
+          div.appendChild(ta);
         } else if (q.type === 'rating') {
           const wrap = document.createElement('div');
           wrap.className = 'rating-wrap';
@@ -401,6 +417,9 @@
         } else if (type === 'rating') {
           const input = q.querySelector('input[type="range"]');
           answers[id] = parseInt(input.value, 10);
+        } else if (type === 'text') {
+          const ta = q.querySelector('textarea');
+          answers[id] = ta ? ta.value.trim() : '';
         }
       });
 
