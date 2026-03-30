@@ -4,9 +4,15 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
-// ── In-Memory Store (kein Filesystem nötig) ────────────────────────────────
-let surveyData = { active: false, title: '', questions: [] };
-let surveyResults = { responses: [] };
+// Persistenter Datenpfad (Railway Volume unter /data, lokal im Projektordner)
+const DATA_DIR = fs.existsSync('/data') ? '/data' : path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+const SURVEY_DATA_FILE = path.join(DATA_DIR, 'survey_data.json');
+const SURVEY_RESULTS_FILE = path.join(DATA_DIR, 'survey_results.json');
+
+const EMPTY_SURVEY = { active: false, title: '', questions: [] };
+const EMPTY_RESULTS = { responses: [] };
 
 const mimeTypes = {
   '.html': 'text/html',
@@ -19,6 +25,15 @@ const mimeTypes = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon'
 };
+
+function readJSON(file, fallback) {
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
+  catch (e) { return fallback; }
+}
+
+function writeJSON(file, data) {
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+}
 
 function readBody(req, cb) {
   let body = '';
@@ -44,7 +59,6 @@ function apiResponse(res, status, data) {
 http.createServer((req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost');
 
-  // CORS preflight
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
@@ -58,44 +72,45 @@ http.createServer((req, res) => {
   // ── API Routes ────────────────────────────────────────────────────────
 
   if (req.method === 'GET' && pathname === '/api/survey') {
-    apiResponse(res, 200, surveyData);
+    apiResponse(res, 200, readJSON(SURVEY_DATA_FILE, EMPTY_SURVEY));
     return;
   }
 
   if (req.method === 'POST' && pathname === '/api/submit') {
     readBody(req, (err, body) => {
       if (err) { apiResponse(res, 400, { error: 'Invalid JSON' }); return; }
-      surveyResults.responses.push({
-        timestamp: new Date().toISOString(),
-        answers: body.answers || {}
-      });
-      apiResponse(res, 200, { ok: true });
+      try {
+        const results = readJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
+        results.responses.push({ timestamp: new Date().toISOString(), answers: body.answers || {} });
+        writeJSON(SURVEY_RESULTS_FILE, results);
+        apiResponse(res, 200, { ok: true });
+      } catch (e) { apiResponse(res, 500, { error: e.message }); }
     });
     return;
   }
 
   if (req.method === 'GET' && pathname === '/api/results') {
-    apiResponse(res, 200, surveyResults);
+    apiResponse(res, 200, readJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS));
     return;
   }
 
   if (req.method === 'POST' && pathname === '/api/create') {
     readBody(req, (err, body) => {
       if (err) { apiResponse(res, 400, { error: 'Invalid JSON' }); return; }
-      surveyData = {
-        active: true,
-        title: body.title || 'Neue Umfrage',
-        questions: body.questions || []
-      };
-      surveyResults = { responses: [] };
-      apiResponse(res, 200, { ok: true });
+      try {
+        writeJSON(SURVEY_DATA_FILE, { active: true, title: body.title || 'Neue Umfrage', questions: body.questions || [] });
+        writeJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
+        apiResponse(res, 200, { ok: true });
+      } catch (e) { apiResponse(res, 500, { error: e.message }); }
     });
     return;
   }
 
   if (req.method === 'POST' && pathname === '/api/reset') {
-    surveyResults = { responses: [] };
-    apiResponse(res, 200, { ok: true });
+    try {
+      writeJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
+      apiResponse(res, 200, { ok: true });
+    } catch (e) { apiResponse(res, 500, { error: e.message }); }
     return;
   }
 
