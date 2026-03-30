@@ -297,14 +297,14 @@
       const data = await res.json();
       _allSurveys = {};
       (data.surveys || []).forEach(s => { _allSurveys[s.id] = s; });
-      renderSurveyList(data.surveys || [], data.activeSurveyId);
-      updateStatusBadge(data.activeSurveyId, data.surveys);
+      renderSurveyList(data.surveys || []);
+      updateStatusBadge(data.surveys);
       if (selectedSurveyId && _allSurveys[selectedSurveyId]) loadResults(selectedSurveyId);
     } catch (e) { /* silent */ }
   }
 
   // ── Survey List ───────────────────────────────────────────────────────────
-  function renderSurveyList(surveys, activeSurveyId) {
+  function renderSurveyList(surveys) {
     const container = document.getElementById('surveyListContainer');
     if (!surveys.length) {
       container.innerHTML = '<div class="results-empty">Noch keine Umfragen erstellt.</div>';
@@ -316,7 +316,7 @@
 
     let html = '<div class="survey-list">';
     sorted.forEach(s => {
-      const isActive = s.id === activeSurveyId;
+      const isActive = !!s.active;  // single source of truth: the survey's own active flag
       const isSelected = s.id === selectedSurveyId;
       const date = new Date(s.createdAt).toLocaleDateString('de-AT', { day:'2-digit', month:'2-digit', year:'numeric' });
       const qCount = (s.questions || []).length;
@@ -346,7 +346,7 @@
   async function activateSurvey(id) {
     try {
       const res = await fetch('/api/activate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id }) });
-      if (res.ok) { showToast('Umfrage aktiviert!', 'success'); loadAll(); }
+      if (res.ok) { showToast('Umfrage aktiviert!', 'success'); await loadAll(); }
       else { const e = await res.json(); showToast('Fehler: ' + (e.error || res.status), 'error'); }
     } catch (e) { showToast('Netzwerkfehler', 'error'); }
   }
@@ -354,7 +354,7 @@
   async function deactivateSurvey(id) {
     try {
       const res = await fetch('/api/deactivate', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ id }) });
-      if (res.ok) { showToast('Umfrage deaktiviert.', 'success'); loadAll(); }
+      if (res.ok) { showToast('Umfrage deaktiviert.', 'success'); await loadAll(); }
       else { const e = await res.json(); showToast('Fehler: ' + (e.error || res.status), 'error'); }
     } catch (e) { showToast('Netzwerkfehler', 'error'); }
   }
@@ -594,9 +594,9 @@
   function removeQuestion(btn) { btn.closest('.question-item').remove(); }
 
   // ── Status Badge ──────────────────────────────────────────────────────────
-  function updateStatusBadge(activeSurveyId, surveys) {
+  function updateStatusBadge(surveys) {
     const badge = document.getElementById('statusBadge');
-    const active = activeSurveyId && surveys ? surveys.find(s => s.id === activeSurveyId) : null;
+    const active = surveys ? surveys.find(s => s.active) : null;
     if (active) {
       badge.className = 'badge badge--active';
       badge.textContent = 'Aktiv: ' + active.title.substring(0, 28) + (active.title.length > 28 ? '...' : '');
