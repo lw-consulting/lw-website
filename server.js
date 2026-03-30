@@ -4,36 +4,59 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
-// Persistenter Datenpfad (Railway Volume unter /data, lokal im Projektordner)
-const DATA_DIR = fs.existsSync('/data') ? '/data' : path.join(__dirname, 'data');
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+// ── Storage: Railway Volume → /tmp → in-memory fallback ───────────────────
+function resolveDataDir() {
+  const candidates = ['/data', '/tmp'];
+  for (const dir of candidates) {
+    try {
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      // test write access
+      const probe = path.join(dir, '.write_test');
+      fs.writeFileSync(probe, '1');
+      fs.unlinkSync(probe);
+      console.log('Survey data dir: ' + dir);
+      return dir;
+    } catch (e) { /* try next */ }
+  }
+  console.log('Survey data dir: in-memory (no writable filesystem found)');
+  return null;
+}
 
-const SURVEY_DATA_FILE = path.join(DATA_DIR, 'survey_data.json');
-const SURVEY_RESULTS_FILE = path.join(DATA_DIR, 'survey_results.json');
+const DATA_DIR = resolveDataDir();
 
-const EMPTY_SURVEY = { active: false, title: '', questions: [] };
-const EMPTY_RESULTS = { responses: [] };
+// in-memory fallback
+let _memSurvey = { active: false, title: '', questions: [] };
+let _memResults = { responses: [] };
 
-const mimeTypes = {
-  '.html': 'text/html',
-  '.css': 'text/css',
-  '.js': 'text/javascript',
-  '.json': 'application/json',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.svg': 'image/svg+xml',
-  '.ico': 'image/x-icon'
-};
-
-function readJSON(file, fallback) {
-  try { return JSON.parse(fs.readFileSync(file, 'utf8')); }
+function readJSON(filename, fallback) {
+  if (!DATA_DIR) return fallback;
+  try { return JSON.parse(fs.readFileSync(path.join(DATA_DIR, filename), 'utf8')); }
   catch (e) { return fallback; }
 }
 
-function writeJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
+function writeJSON(filename, data) {
+  if (!DATA_DIR) {
+    if (filename === 'survey_data.json') _memSurvey = data;
+    else _memResults = data;
+    return;
+  }
+  fs.writeFileSync(path.join(DATA_DIR, filename), JSON.stringify(data, null, 2), 'utf8');
 }
+
+function getSurvey() {
+  return DATA_DIR ? readJSON('survey_data.json', { active: false, title: '', questions: [] }) : _memSurvey;
+}
+
+function getResults() {
+  return DATA_DIR ? readJSON('survey_results.json', { responses: [] }) : _memResults;
+}
+
+// ── HTTP helpers ───────────────────────────────────────────────────────────
+const mimeTypes = {
+  '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript',
+  '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon'
+};
 
 function readBody(req, cb) {
   let body = '';
@@ -55,7 +78,6 @@ function apiResponse(res, status, data) {
 }
 
 // ── Server ─────────────────────────────────────────────────────────────────
-
 http.createServer((req, res) => {
   const { pathname } = new URL(req.url, 'http://localhost');
 
@@ -69,10 +91,10 @@ http.createServer((req, res) => {
     return;
   }
 
-  // ── API Routes ────────────────────────────────────────────────────────
+  // ── API ───────────────────────────────────────────────────────────────
 
   if (req.method === 'GET' && pathname === '/api/survey') {
-    apiResponse(res, 200, readJSON(SURVEY_DATA_FILE, EMPTY_SURVEY));
+    apiResponse(res, 200, getSurvey());
     return;
   }
 
@@ -80,9 +102,9 @@ http.createServer((req, res) => {
     readBody(req, (err, body) => {
       if (err) { apiResponse(res, 400, { error: 'Invalid JSON' }); return; }
       try {
-        const results = readJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
+        const results = getResults();
         results.responses.push({ timestamp: new Date().toISOString(), answers: body.answers || {} });
-        writeJSON(SURVEY_RESULTS_FILE, results);
+        writeJSON('survey_results.json', results);
         apiResponse(res, 200, { ok: true });
       } catch (e) { apiResponse(res, 500, { error: e.message }); }
     });
@@ -90,7 +112,7 @@ http.createServer((req, res) => {
   }
 
   if (req.method === 'GET' && pathname === '/api/results') {
-    apiResponse(res, 200, readJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS));
+    apiResponse(res, 200, getResults());
     return;
   }
 
@@ -98,8 +120,8 @@ http.createServer((req, res) => {
     readBody(req, (err, body) => {
       if (err) { apiResponse(res, 400, { error: 'Invalid JSON' }); return; }
       try {
-        writeJSON(SURVEY_DATA_FILE, { active: true, title: body.title || 'Neue Umfrage', questions: body.questions || [] });
-        writeJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
+        writeJSON('survey_data.json', { active: true, title: body.title || 'Neue Umfrage', questions: body.questions || [] });
+        writeJSON('survey_results.json', { responses: [] });
         apiResponse(res, 200, { ok: true });
       } catch (e) { apiResponse(res, 500, { error: e.message }); }
     });
@@ -108,15 +130,15 @@ http.createServer((req, res) => {
 
   if (req.method === 'POST' && pathname === '/api/reset') {
     try {
-      writeJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
+      writeJSON('survey_results.json', { responses: [] });
       apiResponse(res, 200, { ok: true });
     } catch (e) { apiResponse(res, 500, { error: e.message }); }
     return;
   }
 
-  // ── Static File Serving ───────────────────────────────────────────────
+  // ── Static files ──────────────────────────────────────────────────────
 
-  let filePath = path.join(__dirname, pathname === '/' ? '/index.html' : pathname);
+  const filePath = path.join(__dirname, pathname === '/' ? '/index.html' : pathname);
   const ext = path.extname(filePath).toLowerCase();
 
   fs.readFile(filePath, (err, content) => {

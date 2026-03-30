@@ -520,10 +520,11 @@
         loadResults();
         updateStatusBadge(true, title);
       } else {
-        showToast('Fehler beim Aktivieren.', 'error');
+        const err = await res.json().catch(() => ({}));
+        showToast('Fehler: ' + (err.error || 'Status ' + res.status), 'error');
       }
     } catch (e) {
-      showToast('Netzwerkfehler.', 'error');
+      showToast('Netzwerkfehler: ' + e.message, 'error');
     }
     btn.disabled = false; btn.textContent = '\u25B6 Umfrage aktivieren';
   }
