@@ -23,7 +23,7 @@
   --radius: 8px;
   --radius-lg: 16px;
   --transition: 0.3s ease;
-  --max-width: 1400px;
+  --max-width: 1200px;
 }
 
 /* Reset */
@@ -144,7 +144,8 @@ img {
 .nav__inner {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 3rem;
   height: 72px;
 }
 
