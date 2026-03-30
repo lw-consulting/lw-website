@@ -216,7 +216,11 @@
             <div class="card__title" id="resultsTitle">Ergebnisse</div>
             <div class="card__subtitle" id="resultsSubtitle">Aktualisiert alle 10 Sekunden</div>
           </div>
-          <button class="btn btn--danger btn--sm" onclick="resetSelectedSurvey()">&#128465; Zuruecksetzen</button>
+          <div style="display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:flex-end;">
+            <button class="btn btn--outline btn--sm" onclick="downloadResultsCSV()" title="Als CSV herunterladen">&#128196; CSV</button>
+            <button class="btn btn--outline btn--sm" onclick="downloadResultsPDF()" title="Als PDF herunterladen">&#128438; PDF</button>
+            <button class="btn btn--danger btn--sm" onclick="resetSelectedSurvey()">&#128465;</button>
+          </div>
         </div>
 
         <div class="results-tabs">
@@ -245,6 +249,8 @@
   let selectedSurveyId = null;
   let _activeTab = 'total';
   let _allSurveys = {};
+  let _lastResults = null;
+  let _lastSurveyForResults = null;
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   function doLogin() {
@@ -466,6 +472,8 @@
       const results = await resultsRes.json();
       const survey = (surveysData.surveys || []).find(s => s.id === id);
       if (!survey) return;
+      _lastResults = results;
+      _lastSurveyForResults = survey;
       renderResults(survey, results);
       renderIndividual(survey, results);
       document.getElementById('refreshHint').textContent = 'Zuletzt: ' + new Date().toLocaleTimeString('de-AT');
@@ -609,6 +617,119 @@
 
   function escHtml(str) {
     return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Downloads ─────────────────────────────────────────────────────────────
+  function csvCell(v) { return '"' + String(v||'').replace(/"/g,'""') + '"'; }
+
+  function triggerCSVDownload(rows, filename) {
+    const bom = '\uFEFF'; // UTF-8 BOM for Excel
+    const csv = bom + rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = filename.replace(/[^a-zA-Z0-9_\-]/g,'_') + '.csv';
+    a.click(); URL.revokeObjectURL(url);
+  }
+
+  function downloadResultsCSV() {
+    if (!_lastResults || !_lastSurveyForResults) { showToast('Keine Ergebnisse geladen.', 'error'); return; }
+    const survey = _lastSurveyForResults;
+    const responses = _lastResults.responses || [];
+    const questions = survey.questions || [];
+
+    // Individual wide format (one row per respondent) — works for both tabs
+    const headers = ['#', 'Name', 'Datum', ...questions.map(q => q.text)];
+    const rows = responses.map((r, i) => {
+      const date = new Date(r.timestamp).toLocaleDateString('de-AT');
+      const cols = questions.map(q => {
+        const a = r.answers[q.id];
+        if (Array.isArray(a)) return a.join('; ');
+        if (q.type === 'rating') return a != null ? a + '/10' : '';
+        return a != null ? a : '';
+      });
+      return [i + 1, r.name || 'Anonym', date, ...cols];
+    });
+
+    triggerCSVDownload([headers, ...rows], survey.title + '_Ergebnisse');
+  }
+
+  function downloadResultsPDF() {
+    if (!_lastResults || !_lastSurveyForResults) { showToast('Keine Ergebnisse geladen.', 'error'); return; }
+    const survey = _lastSurveyForResults;
+    const responses = _lastResults.responses || [];
+    const questions = survey.questions || [];
+    const isIndividual = _activeTab === 'individual';
+
+    let body = '';
+
+    if (isIndividual) {
+      responses.slice().reverse().forEach((r, i) => {
+        const idx = responses.length - i;
+        const time = new Date(r.timestamp).toLocaleString('de-AT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        body += `<div class="response"><div class="response-header">#${idx} &mdash; <strong>${escHtml(r.name||'Anonym')}</strong> <span class="meta">${time}</span></div>`;
+        questions.forEach(q => {
+          const a = r.answers[q.id];
+          let ansText;
+          if (Array.isArray(a)) ansText = a.length ? a.join(', ') : '—';
+          else if (q.type === 'rating') ansText = (a != null ? a + ' / 10' : '—');
+          else ansText = a || '—';
+          body += `<div class="answer"><div class="q">${escHtml(q.text)}</div><div class="a">${escHtml(String(ansText))}</div></div>`;
+        });
+        body += '</div>';
+      });
+    } else {
+      questions.forEach(q => {
+        body += `<div class="question-block"><div class="q-title">${escHtml(q.text)}</div>`;
+        if (q.type === 'multiple_choice') {
+          const counts = {}; (q.options||[]).forEach(o => counts[o]=0);
+          responses.forEach(r => { const ans = r.answers[q.id]; if(Array.isArray(ans)) ans.forEach(a => { if(counts[a]!==undefined) counts[a]++; }); });
+          Object.entries(counts).forEach(([opt, count]) => {
+            const pct = responses.length ? Math.round(count/responses.length*100) : 0;
+            body += `<div class="stat"><div class="stat-label">${escHtml(opt)}</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${pct}%"></div></div><div class="stat-count">${count} (${pct}%)</div></div>`;
+          });
+        } else if (q.type === 'rating') {
+          const vals = responses.map(r => r.answers[q.id]).filter(v => typeof v==='number');
+          const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+          body += `<div class="rating-avg">Durchschnitt: <strong>${avg} / 10</strong> (${vals.length} Antwort${vals.length===1?'':'en'})</div>`;
+        } else if (q.type === 'text') {
+          const texts = responses.map(r => r.answers[q.id]).filter(v => v && v.trim());
+          texts.forEach(t => { body += `<div class="text-answer">${escHtml(t)}</div>`; });
+          if (!texts.length) body += '<div class="text-answer" style="color:#999">Keine Antworten.</div>';
+        }
+        body += '</div>';
+      });
+    }
+
+    const date = new Date().toLocaleDateString('de-AT');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escHtml(survey.title)} &mdash; Ergebnisse</title><style>
+      body{font-family:Arial,sans-serif;font-size:13px;color:#222;margin:0;padding:2cm}
+      h1{font-size:18px;margin-bottom:4px} .meta{font-size:11px;color:#666}
+      .response{border:1px solid #ddd;border-radius:6px;padding:12px;margin-bottom:12px;page-break-inside:avoid}
+      .response-header{font-size:13px;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:6px}
+      .answer{margin-bottom:6px} .q{color:#666;font-size:11px} .a{font-weight:600}
+      .question-block{margin-bottom:20px;page-break-inside:avoid}
+      .q-title{font-weight:700;margin-bottom:8px;font-size:13px}
+      .stat{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}
+      .stat-label{min-width:120px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .stat-bar-wrap{flex:1;background:#eee;border-radius:4px;height:10px}
+      .stat-bar{background:#8496f8;height:100%;border-radius:4px}
+      .stat-count{min-width:60px;text-align:right;color:#666}
+      .rating-avg{background:#f5f4f2;padding:10px 14px;border-radius:6px;font-size:13px}
+      .text-answer{background:#f5f4f2;padding:8px 12px;border-radius:6px;margin-bottom:6px;font-size:12px}
+      @media print{body{padding:1cm}}
+    </style></head><body>
+      <h1>${escHtml(survey.title)}</h1>
+      <div class="meta">${isIndividual ? 'Einzelergebnisse' : 'Gesamtergebnis'} &middot; ${responses.length} Antwort${responses.length===1?'':'en'} &middot; Erstellt am ${date}</div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #ddd">
+      ${body || '<p style="color:#999">Keine Antworten vorhanden.</p>'}
+    </body></html>`;
+
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(() => win.print(), 400);
   }
 </script>
 </body>

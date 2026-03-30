@@ -300,6 +300,7 @@
         <div class="success-msg__icon">&#127881;</div>
         <h2>Vielen Dank!</h2>
         <p>Deine Antworten wurden erfolgreich uebermittelt.</p>
+        <button class="btn btn--primary" onclick="downloadMyResultPDF()" style="margin-top:1.5rem">&#128438; Meine Antworten als PDF</button>
       </div>
 
     </div>
@@ -314,6 +315,8 @@
 
   <script>
     let currentSurvey = null;
+    let _submittedName = '';
+    let _submittedAnswers = {};
 
     // Nav scroll effect
     const nav = document.getElementById('nav');
@@ -424,6 +427,8 @@
       });
 
       const name = document.getElementById('participantName').value.trim() || 'Anonym';
+      _submittedName = name;
+      _submittedAnswers = answers;
 
       try {
         const res = await fetch('/api/submit', {
@@ -450,6 +455,43 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
+    }
+
+    function downloadMyResultPDF() {
+      if (!currentSurvey) return;
+      const questions = currentSurvey.questions || [];
+      const date = new Date().toLocaleString('de-AT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+      let rows = '';
+      questions.forEach((q, i) => {
+        const a = _submittedAnswers[q.id];
+        let ansText;
+        if (Array.isArray(a)) ansText = a.length ? a.join(', ') : '—';
+        else if (q.type === 'rating') ansText = (a != null ? a + ' / 10' : '—');
+        else ansText = a || '—';
+        rows += `<tr><td class="qnum">${i+1}</td><td class="qtext">${escHtml(q.text)}</td><td class="atext">${escHtml(String(ansText))}</td></tr>`;
+      });
+
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Meine Antworten &mdash; ${escHtml(currentSurvey.title)}</title><style>
+        body{font-family:Arial,sans-serif;font-size:13px;color:#222;margin:0;padding:2cm}
+        h1{font-size:18px;margin-bottom:4px} .meta{font-size:11px;color:#666;margin-bottom:20px}
+        table{width:100%;border-collapse:collapse}
+        td{padding:10px 12px;border-bottom:1px solid #eee;vertical-align:top}
+        .qnum{width:30px;color:#8496f8;font-weight:700}
+        .qtext{color:#555;width:45%}
+        .atext{font-weight:600}
+        @media print{body{padding:1cm}}
+      </style></head><body>
+        <h1>${escHtml(currentSurvey.title)}</h1>
+        <div class="meta">Teilnehmer: <strong>${escHtml(_submittedName)}</strong> &middot; ${date}</div>
+        <table><tbody>${rows}</tbody></table>
+      </body></html>`;
+
+      const win = window.open('', '_blank');
+      win.document.write(html);
+      win.document.close();
+      win.focus();
+      setTimeout(() => win.print(), 400);
     }
 
     loadSurvey();
