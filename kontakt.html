@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kontaktiere Lukas Watzenboeck - Buche dein kostenfreies Erstgespraech oder sende eine Nachricht.">
+  <title>Kontakt | Lukas Watzenboeck</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav" id="nav">
+    <div class="container nav__inner">
+      <a href="index.html" class="nav__logo"><img src="img/logo.svg" alt="Lukas Watzenboeck"></a>
+      <ul class="nav__links" id="navLinks">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="ueber-mich.html">Ueber mich</a></li>
+        <li><a href="unternehmercoaching.html">Unternehmercoaching</a></li>
+        <li><a href="mitarbeitercoaching.html">Mitarbeitercoaching</a></li>
+        <li><a href="business-beratung.html">Business-Beratung</a></li>
+        <li><a href="disc-test.html">Persoenlichkeitstyp</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="kontakt.html" class="nav__cta active">Kontakt</a></li>
+      </ul>
+      <button class="nav__toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="page-header">
+    <div class="container">
+      <span class="label">Kontakt</span>
+      <h1>Lass uns sprechen</h1>
+      <p>Du hast Fragen oder moechtest ein kostenfreies Erstgespraech buchen? Ich freue mich auf deine Nachricht.</p>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section class="section">
+    <div class="container">
+      <div class="contact-grid">
+
+        <!-- Form -->
+        <div>
+          <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Schreib mir</h2>
+          <p style="margin-bottom: 2rem; font-size: 0.95rem;">Fuell das Formular aus und ich melde mich innerhalb von 24 Stunden bei dir.</p>
+          <form action="#" method="POST">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+              <div class="form-group">
+                <label for="vorname">Vorname *</label>
+                <input type="text" id="vorname" name="vorname" required>
+              </div>
+              <div class="form-group">
+                <label for="nachname">Nachname *</label>
+                <input type="text" id="nachname" name="nachname" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">E-Mail *</label>
+              <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="telefon">Telefon (optional)</label>
+              <input type="tel" id="telefon" name="telefon">
+            </div>
+            <div class="form-group">
+              <label for="thema">Worum geht es?</label>
+              <select id="thema" name="thema">
+                <option value="">Bitte waehlen...</option>
+                <option value="unternehmercoaching">Unternehmercoaching</option>
+                <option value="mitarbeitercoaching">Mitarbeitercoaching</option>
+                <option value="business-beratung">Business-Beratung</option>
+                <option value="sonstiges">Sonstiges</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="nachricht">Deine Nachricht *</label>
+              <textarea id="nachricht" name="nachricht" placeholder="Erzaehl mir kurz von deiner Situation und was du dir von einer Zusammenarbeit erwartest..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn--primary btn--lg" style="width: 100%;">Nachricht senden</button>
+          </form>
+        </div>
+
+        <!-- Info -->
+        <div>
+          <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Kontaktdaten</h2>
+          <p style="margin-bottom: 2rem; font-size: 0.95rem;">Du erreichst mich auch direkt ueber folgende Wege.</p>
+
+          <div class="contact-info">
+            <div class="contact-info__item">
+              <div class="contact-info__icon">&#128231;</div>
+              <div>
+                <h4>E-Mail</h4>
+                <p style="font-size: 0.95rem;">info@lukaswatzenboeck.com</p>
+              </div>
+            </div>
+            <div class="contact-info__item">
+              <div class="contact-info__icon">&#128222;</div>
+              <div>
+                <h4>Telefon</h4>
+                <p style="font-size: 0.95rem;">Auf Anfrage</p>
+              </div>
+            </div>
+            <div class="contact-info__item">
+              <div class="contact-info__icon">&#128205;</div>
+              <div>
+                <h4>Standort</h4>
+                <p style="font-size: 0.95rem;">Oesterreich</p>
+              </div>
+            </div>
+            <div class="contact-info__item">
+              <div class="contact-info__icon">&#128337;</div>
+              <div>
+                <h4>Antwortzeit</h4>
+                <p style="font-size: 0.95rem;">Innerhalb von 24 Stunden</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Booking CTA -->
+          <div style="margin-top: 3rem; padding: 2rem; background: var(--bg-light); border-radius: var(--radius-lg);">
+            <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem;">Kostenfreies Erstgespraech</h3>
+            <p style="font-size: 0.9rem; margin-bottom: 1.25rem;">30 Minuten &mdash; unverbindlich und persoenlich. Wir besprechen deine Situation und schauen, ob wir zusammenpassen.</p>
+            <a href="#" class="btn btn--primary" style="width: 100%; justify-content: center;">Termin buchen</a>
+          </div>
+
+          <!-- Social -->
+          <div style="margin-top: 2rem;">
+            <h4 style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-light); margin-bottom: 1rem;">Folge mir</h4>
+            <div style="display: flex; gap: 0.75rem;">
+              <a href="#" style="width: 44px; height: 44px; border-radius: 10px; background: var(--bg-light); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 0.85rem; font-weight: 600;">in</a>
+              <a href="#" style="width: 44px; height: 44px; border-radius: 10px; background: var(--bg-light); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 0.85rem; font-weight: 600;">ig</a>
+              <a href="#" style="width: 44px; height: 44px; border-radius: 10px; background: var(--bg-light); display: flex; align-items: center; justify-content: center; color: var(--text); font-size: 0.85rem; font-weight: 600;">fb</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__brand">
+          <a href="index.html" class="nav__logo"><img src="img/logo-white.svg" alt="Lukas Watzenboeck" style="height: 36px;"></a>
+          <p>Coach & Berater fuer Unternehmer und Mitarbeiter. Fuer mehr Klarheit, Struktur und Erfolg im Business.</p>
+        </div>
+        <div>
+          <h4>Leistungen</h4>
+          <ul class="footer__links">
+            <li><a href="unternehmercoaching.html">Unternehmercoaching</a></li>
+            <li><a href="mitarbeitercoaching.html">Mitarbeitercoaching</a></li>
+            <li><a href="business-beratung.html">Business-Beratung</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Unternehmen</h4>
+          <ul class="footer__links">
+            <li><a href="ueber-mich.html">Ueber mich</a></li>
+            <li><a href="disc-test.html">Persoenlichkeitstyp</a></li>
+        <li><a href="blog.html">Blog</a></li>
+            <li><a href="kontakt.html">Kontakt</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Rechtliches</h4>
+          <ul class="footer__links">
+            <li><a href="#">Impressum</a></li>
+            <li><a href="#">Datenschutz</a></li>
+            <li><a href="#">AGB</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>&copy; 2026 LW Consulting GmbH. Alle Rechte vorbehalten.</span>
+        <div class="footer__social">
+          <a href="#" aria-label="LinkedIn">in</a>
+          <a href="#" aria-label="Instagram">ig</a>
+          <a href="#" aria-label="Facebook">fb</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById('navToggle');
+    const links = document.getElementById('navLinks');
+    toggle.addEventListener('click', () => links.classList.toggle('open'));
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 20));
+  </script>
+
+</body>
+</html>
