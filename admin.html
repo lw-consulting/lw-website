@@ -653,13 +653,18 @@
     try {
       const res = await fetch('/api/survey');
       const survey = await res.json();
+      document.getElementById('questionList').innerHTML = '';
+      questionCounter = 0;
       if (survey.active && survey.title) {
         document.getElementById('surveyTitle').value = survey.title;
-        document.getElementById('questionList').innerHTML = '';
-        questionCounter = 0;
         (survey.questions || []).forEach(q => addQuestion(q));
+      } else {
+        // Standardmaessig eine leere Frage anzeigen
+        addQuestion();
       }
-    } catch (e) { /* silent */ }
+    } catch (e) {
+      addQuestion();
+    }
   }
 
   // ── Status Badge ─────────────────────────────────────────────────────────
@@ -683,7 +688,7 @@
     t.textContent = msg;
     t.className = `toast toast--${type} show`;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3000);
+    toastTimer = setTimeout(() => { t.classList.remove('show'); }, 5000);
   }
 
   // ── Utils ─────────────────────────────────────────────────────────────────
