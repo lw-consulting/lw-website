@@ -4,11 +4,9 @@ const path = require('path');
 
 const PORT = process.env.PORT || 3000;
 
-const SURVEY_DATA_FILE = path.join('/tmp', 'survey_data.json');
-const SURVEY_RESULTS_FILE = path.join('/tmp', 'survey_results.json');
-
-const EMPTY_SURVEY = { active: false, title: '', questions: [] };
-const EMPTY_RESULTS = { responses: [] };
+// ── In-Memory Store (kein Filesystem nötig) ────────────────────────────────
+let surveyData = { active: false, title: '', questions: [] };
+let surveyResults = { responses: [] };
 
 const mimeTypes = {
   '.html': 'text/html',
@@ -21,20 +19,6 @@ const mimeTypes = {
   '.svg': 'image/svg+xml',
   '.ico': 'image/x-icon'
 };
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function readJSON(file, fallback) {
-  try {
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
-  } catch (e) {
-    return fallback;
-  }
-}
-
-function writeJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
-}
 
 function readBody(req, cb) {
   let body = '';
@@ -73,67 +57,45 @@ http.createServer((req, res) => {
 
   // ── API Routes ────────────────────────────────────────────────────────
 
-  // GET /api/survey → aktive Umfrage zurückgeben
   if (req.method === 'GET' && pathname === '/api/survey') {
-    const survey = readJSON(SURVEY_DATA_FILE, EMPTY_SURVEY);
-    apiResponse(res, 200, survey);
+    apiResponse(res, 200, surveyData);
     return;
   }
 
-  // POST /api/submit → Antwort speichern
   if (req.method === 'POST' && pathname === '/api/submit') {
     readBody(req, (err, body) => {
       if (err) { apiResponse(res, 400, { error: 'Invalid JSON' }); return; }
-      try {
-        const results = readJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
-        results.responses.push({
-          timestamp: new Date().toISOString(),
-          answers: body.answers || {}
-        });
-        writeJSON(SURVEY_RESULTS_FILE, results);
-        apiResponse(res, 200, { ok: true });
-      } catch (e) {
-        apiResponse(res, 500, { error: 'Speicherfehler' });
-      }
+      surveyResults.responses.push({
+        timestamp: new Date().toISOString(),
+        answers: body.answers || {}
+      });
+      apiResponse(res, 200, { ok: true });
     });
     return;
   }
 
-  // GET /api/results → alle Ergebnisse zurückgeben
   if (req.method === 'GET' && pathname === '/api/results') {
-    const results = readJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
-    apiResponse(res, 200, results);
+    apiResponse(res, 200, surveyResults);
     return;
   }
 
-  // POST /api/create → neue Umfrage aktivieren (ersetzt bestehende + leert Ergebnisse)
   if (req.method === 'POST' && pathname === '/api/create') {
     readBody(req, (err, body) => {
       if (err) { apiResponse(res, 400, { error: 'Invalid JSON' }); return; }
-      try {
-        const survey = {
-          active: true,
-          title: body.title || 'Neue Umfrage',
-          questions: body.questions || []
-        };
-        writeJSON(SURVEY_DATA_FILE, survey);
-        writeJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
-        apiResponse(res, 200, { ok: true });
-      } catch (e) {
-        apiResponse(res, 500, { error: 'Speicherfehler' });
-      }
+      surveyData = {
+        active: true,
+        title: body.title || 'Neue Umfrage',
+        questions: body.questions || []
+      };
+      surveyResults = { responses: [] };
+      apiResponse(res, 200, { ok: true });
     });
     return;
   }
 
-  // POST /api/reset → Ergebnisse löschen
   if (req.method === 'POST' && pathname === '/api/reset') {
-    try {
-      writeJSON(SURVEY_RESULTS_FILE, EMPTY_RESULTS);
-      apiResponse(res, 200, { ok: true });
-    } catch (e) {
-      apiResponse(res, 500, { error: 'Speicherfehler' });
-    }
+    surveyResults = { responses: [] };
+    apiResponse(res, 200, { ok: true });
     return;
   }
 
