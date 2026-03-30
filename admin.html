@@ -623,7 +623,7 @@
   function csvCell(v) { return '"' + String(v||'').replace(/"/g,'""') + '"'; }
 
   function triggerCSVDownload(rows, filename) {
-    const bom = '\uFEFF'; // UTF-8 BOM for Excel
+    const bom = '\uFEFF';
     const csv = bom + rows.map(r => r.map(csvCell).join(',')).join('\r\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -637,21 +637,161 @@
     const survey = _lastSurveyForResults;
     const responses = _lastResults.responses || [];
     const questions = survey.questions || [];
+    const date = new Date().toLocaleDateString('de-AT');
+    const rows = [];
 
-    // Individual wide format (one row per respondent) — works for both tabs
-    const headers = ['#', 'Name', 'Datum', ...questions.map(q => q.text)];
-    const rows = responses.map((r, i) => {
-      const date = new Date(r.timestamp).toLocaleDateString('de-AT');
+    // ── Header-Block ──
+    rows.push(['Umfrage-Ergebnisse: ' + survey.title]);
+    rows.push(['Exportiert am: ' + date, '', responses.length + ' Antwort' + (responses.length===1?'':'en')]);
+    rows.push([]);
+
+    // ── Gesamtergebnis ──
+    rows.push(['GESAMTERGEBNIS']);
+    rows.push([]);
+    questions.forEach(q => {
+      rows.push([q.text, '(' + (q.type === 'multiple_choice' ? 'Multiple Choice' : q.type === 'rating' ? 'Rating 1–10' : 'Freitext') + ')']);
+      if (q.type === 'multiple_choice') {
+        const counts = {}; (q.options||[]).forEach(o => counts[o]=0);
+        responses.forEach(r => { const a = r.answers[q.id]; if(Array.isArray(a)) a.forEach(v => { if(counts[v]!==undefined) counts[v]++; }); });
+        rows.push(['Option', 'Anzahl', 'Prozent']);
+        Object.entries(counts).forEach(([opt, cnt]) => {
+          rows.push([opt, cnt, responses.length ? Math.round(cnt/responses.length*100)+'%' : '0%']);
+        });
+      } else if (q.type === 'rating') {
+        const vals = responses.map(r => r.answers[q.id]).filter(v => typeof v==='number');
+        const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+        rows.push(['Durchschnitt', avg + '/10', vals.length + ' Bewertung' + (vals.length===1?'':'en')]);
+        const dist = {}; for(let i=1;i<=10;i++) dist[i]=0; vals.forEach(v=>dist[v]++);
+        rows.push(['Wert', 'Anzahl']); for(let i=1;i<=10;i++) rows.push([i, dist[i]]);
+      } else if (q.type === 'text') {
+        const texts = responses.map(r => r.answers[q.id]).filter(v => v && v.trim());
+        rows.push(['Antworten']); texts.forEach(t => rows.push([t]));
+        if (!texts.length) rows.push(['(keine Antworten)']);
+      }
+      rows.push([]);
+    });
+
+    // ── Einzelergebnisse ──
+    rows.push([]);
+    rows.push(['EINZELERGEBNISSE']);
+    rows.push([]);
+    rows.push(['#', 'Name', 'Datum/Uhrzeit', ...questions.map(q => q.text)]);
+    responses.forEach((r, i) => {
+      const dt = new Date(r.timestamp).toLocaleString('de-AT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
       const cols = questions.map(q => {
         const a = r.answers[q.id];
         if (Array.isArray(a)) return a.join('; ');
         if (q.type === 'rating') return a != null ? a + '/10' : '';
         return a != null ? a : '';
       });
-      return [i + 1, r.name || 'Anonym', date, ...cols];
+      rows.push([i+1, r.name||'Anonym', dt, ...cols]);
     });
 
-    triggerCSVDownload([headers, ...rows], survey.title + '_Ergebnisse');
+    triggerCSVDownload(rows, survey.title + '_Ergebnisse');
+  }
+
+  function buildPdfAggregateHtml(questions, responses) {
+    let html = '';
+    questions.forEach((q, qi) => {
+      html += `<div class="question-block">
+        <div class="q-num">Frage ${qi+1}</div>
+        <div class="q-title">${escHtml(q.text)}</div>`;
+      if (q.type === 'multiple_choice') {
+        const counts = {}; (q.options||[]).forEach(o => counts[o]=0);
+        responses.forEach(r => { const a = r.answers[q.id]; if(Array.isArray(a)) a.forEach(v => { if(counts[v]!==undefined) counts[v]++; }); });
+        Object.entries(counts).forEach(([opt, count]) => {
+          const pct = responses.length ? Math.round(count/responses.length*100) : 0;
+          html += `<div class="stat"><div class="stat-label">${escHtml(opt)}</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${pct}%"></div></div><div class="stat-count">${count} <span>(${pct}%)</span></div></div>`;
+        });
+      } else if (q.type === 'rating') {
+        const vals = responses.map(r => r.answers[q.id]).filter(v => typeof v==='number');
+        const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
+        html += `<div class="rating-avg"><span class="avg-num">${avg}</span><span class="avg-label">/ 10 Durchschnitt &middot; ${vals.length} Bewertung${vals.length===1?'':'en'}</span></div>`;
+        if (vals.length) {
+          const dist = {}; for(let i=1;i<=10;i++) dist[i]=0; vals.forEach(v=>dist[v]++);
+          const maxD = Math.max(1,...Object.values(dist));
+          for(let i=1;i<=10;i++) { const pct=Math.round(dist[i]/maxD*100); html+=`<div class="stat" style="font-size:11px"><div class="stat-label" style="min-width:24px;max-width:24px">${i}</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${pct}%"></div></div><div class="stat-count">${dist[i]}</div></div>`; }
+        }
+      } else if (q.type === 'text') {
+        const texts = responses.map(r => r.answers[q.id]).filter(v => v && v.trim());
+        if (texts.length) texts.forEach(t => { html += `<div class="text-answer">${escHtml(t)}</div>`; });
+        else html += '<div class="text-answer empty">Keine Antworten.</div>';
+      }
+      html += '</div>';
+    });
+    return html;
+  }
+
+  function buildPdfIndividualHtml(questions, responses) {
+    let html = '';
+    responses.slice().reverse().forEach((r, i) => {
+      const idx = responses.length - i;
+      const time = new Date(r.timestamp).toLocaleString('de-AT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      html += `<div class="response"><div class="response-header"><span class="resp-idx">#${idx}</span><strong>${escHtml(r.name||'Anonym')}</strong><span class="resp-time">${time}</span></div>`;
+      questions.forEach(q => {
+        const a = r.answers[q.id];
+        let ansText;
+        if (Array.isArray(a)) ansText = a.length ? a.join(', ') : '—';
+        else if (q.type === 'rating') ansText = a != null ? a + ' / 10' : '—';
+        else ansText = a || '—';
+        html += `<div class="answer"><div class="q">${escHtml(q.text)}</div><div class="a">${escHtml(String(ansText))}</div></div>`;
+      });
+      html += '</div>';
+    });
+    return html || '<p class="empty">Keine Antworten vorhanden.</p>';
+  }
+
+  function pdfStyles(logoUrl) {
+    return `
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Inter',Arial,sans-serif;font-size:12px;color:#3a3a3a;background:#fff}
+      .page{padding:2cm}
+      /* Header */
+      .pdf-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:3px solid #8496f8;margin-bottom:24px}
+      .pdf-logo{height:32px}
+      .pdf-header-right{text-align:right}
+      .pdf-company{font-size:11px;font-weight:700;color:#8496f8;letter-spacing:.05em;text-transform:uppercase}
+      .pdf-date{font-size:10px;color:#9ca3af;margin-top:2px}
+      /* Title */
+      .pdf-title{font-size:20px;font-weight:800;color:#282828;margin-bottom:4px}
+      .pdf-subtitle{font-size:11px;color:#6b7280;margin-bottom:28px}
+      /* Section heading */
+      .section-heading{font-size:13px;font-weight:700;color:#8496f8;text-transform:uppercase;letter-spacing:.08em;padding:8px 14px;background:rgba(132,150,248,.08);border-left:3px solid #8496f8;border-radius:0 6px 6px 0;margin-bottom:18px;margin-top:8px}
+      /* Question block */
+      .question-block{margin-bottom:22px;page-break-inside:avoid}
+      .q-num{font-size:10px;font-weight:700;color:#8496f8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+      .q-title{font-size:13px;font-weight:700;color:#282828;margin-bottom:10px}
+      /* Stats */
+      .stat{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:12px}
+      .stat-label{min-width:130px;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#3a3a3a}
+      .stat-bar-wrap{flex:1;background:#edebe9;border-radius:4px;height:10px;overflow:hidden}
+      .stat-bar{height:100%;background:linear-gradient(90deg,#8496f8,#a8b5fb);border-radius:4px}
+      .stat-count{min-width:64px;text-align:right;color:#6b7280;font-size:11px}
+      .stat-count span{color:#9ca3af}
+      /* Rating */
+      .rating-avg{display:flex;align-items:baseline;gap:10px;background:rgba(132,150,248,.07);border:1px solid rgba(132,150,248,.2);border-radius:8px;padding:12px 16px;margin-bottom:10px}
+      .avg-num{font-size:28px;font-weight:800;color:#8496f8;line-height:1}
+      .avg-label{font-size:11px;color:#6b7280}
+      /* Text answers */
+      .text-answer{background:#f5f4f2;border-left:3px solid #8496f8;padding:7px 12px;border-radius:0 6px 6px 0;margin-bottom:6px;font-size:12px;color:#3a3a3a}
+      .text-answer.empty{color:#9ca3af;border-left-color:#e5e7eb}
+      /* Individual responses */
+      .response{border:1px solid #e5e7eb;border-radius:8px;margin-bottom:12px;overflow:hidden;page-break-inside:avoid}
+      .response-header{display:flex;align-items:center;gap:10px;padding:9px 14px;background:#f5f4f2;border-bottom:1px solid #e5e7eb}
+      .resp-idx{font-size:10px;font-weight:700;color:#8496f8;background:rgba(132,150,248,.15);padding:2px 7px;border-radius:100px}
+      .resp-time{font-size:10px;color:#9ca3af;margin-left:auto}
+      .answer{padding:7px 14px;border-bottom:1px solid #f0f0f0}
+      .answer:last-child{border-bottom:none}
+      .q{font-size:10px;color:#6b7280;margin-bottom:2px}
+      .a{font-size:12px;font-weight:600;color:#282828}
+      .divider{border:none;border-top:1px solid #e5e7eb;margin:24px 0}
+      .empty{color:#9ca3af;font-style:italic}
+      @media print{
+        body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+        .page{padding:1cm}
+        .section-heading{break-before:avoid}
+      }`;
   }
 
   function downloadResultsPDF() {
@@ -659,77 +799,37 @@
     const survey = _lastSurveyForResults;
     const responses = _lastResults.responses || [];
     const questions = survey.questions || [];
-    const isIndividual = _activeTab === 'individual';
-
-    let body = '';
-
-    if (isIndividual) {
-      responses.slice().reverse().forEach((r, i) => {
-        const idx = responses.length - i;
-        const time = new Date(r.timestamp).toLocaleString('de-AT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-        body += `<div class="response"><div class="response-header">#${idx} &mdash; <strong>${escHtml(r.name||'Anonym')}</strong> <span class="meta">${time}</span></div>`;
-        questions.forEach(q => {
-          const a = r.answers[q.id];
-          let ansText;
-          if (Array.isArray(a)) ansText = a.length ? a.join(', ') : '—';
-          else if (q.type === 'rating') ansText = (a != null ? a + ' / 10' : '—');
-          else ansText = a || '—';
-          body += `<div class="answer"><div class="q">${escHtml(q.text)}</div><div class="a">${escHtml(String(ansText))}</div></div>`;
-        });
-        body += '</div>';
-      });
-    } else {
-      questions.forEach(q => {
-        body += `<div class="question-block"><div class="q-title">${escHtml(q.text)}</div>`;
-        if (q.type === 'multiple_choice') {
-          const counts = {}; (q.options||[]).forEach(o => counts[o]=0);
-          responses.forEach(r => { const ans = r.answers[q.id]; if(Array.isArray(ans)) ans.forEach(a => { if(counts[a]!==undefined) counts[a]++; }); });
-          Object.entries(counts).forEach(([opt, count]) => {
-            const pct = responses.length ? Math.round(count/responses.length*100) : 0;
-            body += `<div class="stat"><div class="stat-label">${escHtml(opt)}</div><div class="stat-bar-wrap"><div class="stat-bar" style="width:${pct}%"></div></div><div class="stat-count">${count} (${pct}%)</div></div>`;
-          });
-        } else if (q.type === 'rating') {
-          const vals = responses.map(r => r.answers[q.id]).filter(v => typeof v==='number');
-          const avg = vals.length ? (vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1) : '—';
-          body += `<div class="rating-avg">Durchschnitt: <strong>${avg} / 10</strong> (${vals.length} Antwort${vals.length===1?'':'en'})</div>`;
-        } else if (q.type === 'text') {
-          const texts = responses.map(r => r.answers[q.id]).filter(v => v && v.trim());
-          texts.forEach(t => { body += `<div class="text-answer">${escHtml(t)}</div>`; });
-          if (!texts.length) body += '<div class="text-answer" style="color:#999">Keine Antworten.</div>';
-        }
-        body += '</div>';
-      });
-    }
-
     const date = new Date().toLocaleDateString('de-AT');
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escHtml(survey.title)} &mdash; Ergebnisse</title><style>
-      body{font-family:Arial,sans-serif;font-size:13px;color:#222;margin:0;padding:2cm}
-      h1{font-size:18px;margin-bottom:4px} .meta{font-size:11px;color:#666}
-      .response{border:1px solid #ddd;border-radius:6px;padding:12px;margin-bottom:12px;page-break-inside:avoid}
-      .response-header{font-size:13px;margin-bottom:8px;border-bottom:1px solid #eee;padding-bottom:6px}
-      .answer{margin-bottom:6px} .q{color:#666;font-size:11px} .a{font-weight:600}
-      .question-block{margin-bottom:20px;page-break-inside:avoid}
-      .q-title{font-weight:700;margin-bottom:8px;font-size:13px}
-      .stat{display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}
-      .stat-label{min-width:120px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      .stat-bar-wrap{flex:1;background:#eee;border-radius:4px;height:10px}
-      .stat-bar{background:#8496f8;height:100%;border-radius:4px}
-      .stat-count{min-width:60px;text-align:right;color:#666}
-      .rating-avg{background:#f5f4f2;padding:10px 14px;border-radius:6px;font-size:13px}
-      .text-answer{background:#f5f4f2;padding:8px 12px;border-radius:6px;margin-bottom:6px;font-size:12px}
-      @media print{body{padding:1cm}}
-    </style></head><body>
-      <h1>${escHtml(survey.title)}</h1>
-      <div class="meta">${isIndividual ? 'Einzelergebnisse' : 'Gesamtergebnis'} &middot; ${responses.length} Antwort${responses.length===1?'':'en'} &middot; Erstellt am ${date}</div>
-      <hr style="margin:16px 0;border:none;border-top:1px solid #ddd">
-      ${body || '<p style="color:#999">Keine Antworten vorhanden.</p>'}
-    </body></html>`;
+    const logoUrl = location.origin + '/img/logo.svg';
+
+    const aggregateHtml = buildPdfAggregateHtml(questions, responses);
+    const individualHtml = buildPdfIndividualHtml(questions, responses);
+
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <title>${escHtml(survey.title)} – Ergebnisse</title>
+      <style>${pdfStyles(logoUrl)}</style>
+    </head><body><div class="page">
+      <div class="pdf-header">
+        <img src="${logoUrl}" class="pdf-logo" alt="Lukas Watzenboeck">
+        <div class="pdf-header-right">
+          <div class="pdf-company">LW Consulting GmbH</div>
+          <div class="pdf-date">Erstellt am ${date}</div>
+        </div>
+      </div>
+      <div class="pdf-title">${escHtml(survey.title)}</div>
+      <div class="pdf-subtitle">${responses.length} Antwort${responses.length===1?'':'en'} eingegangen</div>
+      <div class="section-heading">Gesamtergebnis</div>
+      ${aggregateHtml || '<p class="empty">Keine Antworten vorhanden.</p>'}
+      <hr class="divider">
+      <div class="section-heading">Einzelergebnisse</div>
+      ${individualHtml}
+    </div></body></html>`;
 
     const win = window.open('', '_blank');
     win.document.write(html);
     win.document.close();
     win.focus();
-    setTimeout(() => win.print(), 400);
+    setTimeout(() => win.print(), 500);
   }
 </script>
 </body>

@@ -395,7 +395,7 @@
           row.appendChild(val);
           const lbls = document.createElement('div');
           lbls.className = 'rating-labels';
-          lbls.innerHTML = '<span>1 &mdash; Sehr schlecht</span><span>10 &mdash; Ausgezeichnet</span>';
+          lbls.innerHTML = '<span>1 &mdash; gering</span><span>10 &mdash; hoch</span>';
           wrap.appendChild(row);
           wrap.appendChild(lbls);
           div.appendChild(wrap);
@@ -461,37 +461,67 @@
       if (!currentSurvey) return;
       const questions = currentSurvey.questions || [];
       const date = new Date().toLocaleString('de-AT', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const logoUrl = location.origin + '/img/logo.svg';
 
       let rows = '';
       questions.forEach((q, i) => {
         const a = _submittedAnswers[q.id];
         let ansText;
         if (Array.isArray(a)) ansText = a.length ? a.join(', ') : '—';
-        else if (q.type === 'rating') ansText = (a != null ? a + ' / 10' : '—');
+        else if (q.type === 'rating') ansText = a != null ? a + ' / 10' : '—';
         else ansText = a || '—';
-        rows += `<tr><td class="qnum">${i+1}</td><td class="qtext">${escHtml(q.text)}</td><td class="atext">${escHtml(String(ansText))}</td></tr>`;
+        rows += `<div class="answer-row">
+          <div class="q-num">Frage ${i+1}</div>
+          <div class="q-text">${escHtml(q.text)}</div>
+          <div class="a-text">${escHtml(String(ansText))}</div>
+        </div>`;
       });
 
-      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Meine Antworten &mdash; ${escHtml(currentSurvey.title)}</title><style>
-        body{font-family:Arial,sans-serif;font-size:13px;color:#222;margin:0;padding:2cm}
-        h1{font-size:18px;margin-bottom:4px} .meta{font-size:11px;color:#666;margin-bottom:20px}
-        table{width:100%;border-collapse:collapse}
-        td{padding:10px 12px;border-bottom:1px solid #eee;vertical-align:top}
-        .qnum{width:30px;color:#8496f8;font-weight:700}
-        .qtext{color:#555;width:45%}
-        .atext{font-weight:600}
-        @media print{body{padding:1cm}}
-      </style></head><body>
-        <h1>${escHtml(currentSurvey.title)}</h1>
-        <div class="meta">Teilnehmer: <strong>${escHtml(_submittedName)}</strong> &middot; ${date}</div>
-        <table><tbody>${rows}</tbody></table>
-      </body></html>`;
+      const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+        <title>Meine Antworten – ${escHtml(currentSurvey.title)}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+          *{box-sizing:border-box;margin:0;padding:0}
+          body{font-family:'Inter',Arial,sans-serif;font-size:13px;color:#3a3a3a;background:#fff}
+          .page{padding:2cm}
+          .pdf-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;border-bottom:3px solid #8496f8;margin-bottom:24px}
+          .pdf-logo{height:32px}
+          .pdf-header-right{text-align:right}
+          .pdf-company{font-size:11px;font-weight:700;color:#8496f8;letter-spacing:.05em;text-transform:uppercase}
+          .pdf-date{font-size:10px;color:#9ca3af;margin-top:2px}
+          .pdf-title{font-size:20px;font-weight:800;color:#282828;margin-bottom:4px}
+          .pdf-participant{font-size:12px;color:#6b7280;margin-bottom:8px}
+          .pdf-participant strong{color:#3a3a3a}
+          .section-heading{font-size:12px;font-weight:700;color:#8496f8;text-transform:uppercase;letter-spacing:.08em;padding:7px 14px;background:rgba(132,150,248,.08);border-left:3px solid #8496f8;border-radius:0 6px 6px 0;margin-bottom:18px;margin-top:8px}
+          .answer-row{padding:12px 0;border-bottom:1px solid #f0f0f0;page-break-inside:avoid}
+          .answer-row:last-child{border-bottom:none}
+          .q-num{font-size:10px;font-weight:700;color:#8496f8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+          .q-text{font-size:12px;color:#6b7280;margin-bottom:6px}
+          .a-text{font-size:14px;font-weight:700;color:#282828;background:rgba(132,150,248,.07);border-left:3px solid #8496f8;padding:8px 12px;border-radius:0 6px 6px 0}
+          @media print{
+            body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+            .page{padding:1cm}
+          }
+        </style>
+      </head><body><div class="page">
+        <div class="pdf-header">
+          <img src="${logoUrl}" class="pdf-logo" alt="Lukas Watzenboeck">
+          <div class="pdf-header-right">
+            <div class="pdf-company">LW Consulting GmbH</div>
+            <div class="pdf-date">${date}</div>
+          </div>
+        </div>
+        <div class="pdf-title">${escHtml(currentSurvey.title)}</div>
+        <div class="pdf-participant">Teilnehmer: <strong>${escHtml(_submittedName)}</strong></div>
+        <div class="section-heading">Meine Antworten</div>
+        ${rows || '<p style="color:#9ca3af">Keine Antworten.</p>'}
+      </div></body></html>`;
 
       const win = window.open('', '_blank');
       win.document.write(html);
       win.document.close();
       win.focus();
-      setTimeout(() => win.print(), 400);
+      setTimeout(() => win.print(), 500);
     }
 
     loadSurvey();
