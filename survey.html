@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Umfrage - Lukas Watzenboeck">
+  <title>Umfrage | Lukas Watzenboeck</title>
+  <style>
+    /* ── CSS Variables (matching style.css) ── */
+    :root {
+      --primary: #8496f8;
+      --primary-dark: #6b7de8;
+      --primary-light: #a8b5fb;
+      --dark: #282828;
+      --text: #3a3a3a;
+      --text-light: #6b7280;
+      --bg: #ffffff;
+      --bg-light: #edebe9;
+      --border: #e5e7eb;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+      --max-width: 1200px;
+      --transition: 0.2s ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+
+    /* ── Nav ── */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      transition: box-shadow var(--transition);
+    }
+    .nav.scrolled { box-shadow: var(--shadow); }
+    .nav__inner {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .nav__logo img { height: 36px; display: block; }
+    .nav__logo { text-decoration: none; }
+    .nav__home-link {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      color: var(--text-light); text-decoration: none; font-size: 0.9rem;
+      transition: color var(--transition);
+    }
+    .nav__home-link:hover { color: var(--primary); }
+    .nav__home-link svg { width: 16px; height: 16px; }
+
+    /* ── Page Header ── */
+    .page-header {
+      background: linear-gradient(135deg, #f8f7ff 0%, var(--bg-light) 100%);
+      padding: 4rem 1.5rem 3rem;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-header h1 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 0.75rem;
+    }
+    .page-header p {
+      color: var(--text-light);
+      font-size: 1.05rem;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .label {
+      display: inline-block;
+      font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--primary); background: rgba(132,150,248,0.1);
+      padding: 0.3rem 0.85rem; border-radius: 100px;
+      margin-bottom: 1rem;
+    }
+
+    /* ── Survey Section ── */
+    .section { padding: 3rem 1.5rem 5rem; }
+    .container { max-width: 680px; margin: 0 auto; }
+
+    /* ── Survey Card ── */
+    .survey-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    /* ── Question ── */
+    .question {
+      margin-bottom: 2rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .question:last-of-type { border-bottom: none; margin-bottom: 1.5rem; }
+
+    .question__label {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--dark);
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .question__num {
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      width: 24px; height: 24px;
+      background: var(--primary);
+      color: white; border-radius: 50%;
+      font-size: 0.75rem; font-weight: 700;
+      flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* Multiple Choice */
+    .options { display: flex; flex-direction: column; gap: 0.6rem; }
+    .option-label {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      font-size: 0.95rem;
+      user-select: none;
+    }
+    .option-label:hover { border-color: var(--primary-light); background: rgba(132,150,248,0.05); }
+    .option-label input[type="checkbox"] { accent-color: var(--primary); width: 18px; height: 18px; flex-shrink: 0; cursor: pointer; }
+    .option-label:has(input:checked) { border-color: var(--primary); background: rgba(132,150,248,0.08); }
+
+    /* Rating */
+    .rating-wrap { display: flex; flex-direction: column; gap: 0.75rem; }
+    .rating-row { display: flex; align-items: center; gap: 1rem; }
+    .rating-row input[type="range"] {
+      flex: 1; accent-color: var(--primary);
+      height: 6px; cursor: pointer;
+    }
+    .rating-value {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 44px; height: 44px;
+      background: var(--primary);
+      color: white; border-radius: var(--radius);
+      font-weight: 700; font-size: 1.1rem;
+    }
+    .rating-labels {
+      display: flex; justify-content: space-between;
+      font-size: 0.78rem; color: var(--text-light);
+    }
+
+    /* ── Submit Button ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0.85rem 2rem; border-radius: var(--radius);
+      font-size: 1rem; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: transform var(--transition), box-shadow var(--transition), background var(--transition);
+      text-decoration: none; font-family: inherit;
+    }
+    .btn--primary {
+      background: var(--primary); color: white;
+      box-shadow: 0 4px 14px rgba(132,150,248,0.4);
+    }
+    .btn--primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(132,150,248,0.5);
+    }
+    .btn--primary:disabled {
+      opacity: 0.6; cursor: not-allowed; transform: none;
+    }
+    .btn--full { width: 100%; }
+
+    /* ── States ── */
+    .state { text-align: center; padding: 4rem 2rem; }
+    .state__icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .state h2 { font-size: 1.5rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem; }
+    .state p { color: var(--text-light); font-size: 0.95rem; }
+
+    .success-msg {
+      display: none;
+      text-align: center; padding: 3rem 1rem;
+    }
+    .success-msg__icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .success-msg h2 { font-size: 1.5rem; font-weight: 700; color: var(--dark); margin-bottom: 0.5rem; }
+    .success-msg p { color: var(--text-light); }
+
+    /* ── Footer ── */
+    .footer {
+      background: var(--dark); color: rgba(255,255,255,0.7);
+      padding: 3rem 1.5rem 2rem;
+    }
+    .footer__bottom {
+      max-width: var(--max-width); margin: 2rem auto 0;
+      padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex; justify-content: center; align-items: center;
+      font-size: 0.85rem;
+    }
+
+    /* ── Loading spinner ── */
+    .spinner {
+      display: flex; justify-content: center; align-items: center;
+      padding: 4rem;
+    }
+    .spinner::after {
+      content: '';
+      width: 40px; height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 640px) {
+      .survey-card { padding: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav" id="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo"><img src="img/logo.svg" alt="Lukas Watzenboeck"></a>
+      <a href="index.html" class="nav__home-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        Zur Website
+      </a>
+    </div>
+  </nav>
+
+  <!-- Page Header -->
+  <section class="page-header" id="pageHeader">
+    <div>
+      <span class="label">Umfrage</span>
+      <h1 id="surveyTitle">Wird geladen...</h1>
+      <p id="surveySubtitle"></p>
+    </div>
+  </section>
+
+  <!-- Survey Content -->
+  <section class="section">
+    <div class="container">
+
+      <!-- Loading -->
+      <div class="spinner" id="loadingState"></div>
+
+      <!-- No active survey -->
+      <div class="state" id="emptyState" style="display:none;">
+        <div class="state__icon">&#128221;</div>
+        <h2>Keine aktive Umfrage</h2>
+        <p>Aktuell ist keine Umfrage verfuegbar. Bitte komm spaeter wieder.</p>
+      </div>
+
+      <!-- Survey form -->
+      <div class="survey-card" id="surveyForm" style="display:none;">
+        <div id="questionsContainer"></div>
+        <button class="btn btn--primary btn--full" id="submitBtn" onclick="submitSurvey()">
+          Antworten absenden
+        </button>
+      </div>
+
+      <!-- Success -->
+      <div class="success-msg" id="successMsg">
+        <div class="success-msg__icon">&#127881;</div>
+        <h2>Vielen Dank!</h2>
+        <p>Deine Antworten wurden erfolgreich uebermittelt.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer__bottom">
+      <span>&copy; 2026 LW Consulting GmbH. Alle Rechte vorbehalten.</span>
+    </div>
+  </footer>
+
+  <script>
+    let currentSurvey = null;
+
+    // Nav scroll effect
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 20));
+
+    // Load survey on page load
+    async function loadSurvey() {
+      try {
+        const res = await fetch('/api/survey');
+        const data = await res.json();
+
+        document.getElementById('loadingState').style.display = 'none';
+
+        if (!data.active || !data.questions || data.questions.length === 0) {
+          document.getElementById('surveyTitle').textContent = 'Umfrage';
+          document.getElementById('emptyState').style.display = 'block';
+          return;
+        }
+
+        currentSurvey = data;
+        document.getElementById('surveyTitle').textContent = data.title;
+        renderQuestions(data.questions);
+        document.getElementById('surveyForm').style.display = 'block';
+
+      } catch (e) {
+        document.getElementById('loadingState').style.display = 'none';
+        document.getElementById('surveyTitle').textContent = 'Umfrage';
+        document.getElementById('emptyState').style.display = 'block';
+      }
+    }
+
+    function renderQuestions(questions) {
+      const container = document.getElementById('questionsContainer');
+      container.innerHTML = '';
+
+      questions.forEach((q, i) => {
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.dataset.id = q.id;
+        div.dataset.type = q.type;
+
+        const label = document.createElement('div');
+        label.className = 'question__label';
+        label.innerHTML = `<span class="question__num">${i + 1}</span><span>${escHtml(q.text)}</span>`;
+        div.appendChild(label);
+
+        if (q.type === 'multiple_choice') {
+          const opts = document.createElement('div');
+          opts.className = 'options';
+          (q.options || []).forEach(opt => {
+            const l = document.createElement('label');
+            l.className = 'option-label';
+            l.innerHTML = `<input type="checkbox" name="${q.id}" value="${escHtml(opt)}"><span>${escHtml(opt)}</span>`;
+            opts.appendChild(l);
+          });
+          div.appendChild(opts);
+        } else if (q.type === 'rating') {
+          const wrap = document.createElement('div');
+          wrap.className = 'rating-wrap';
+          const row = document.createElement('div');
+          row.className = 'rating-row';
+          const input = document.createElement('input');
+          input.type = 'range'; input.min = 1; input.max = 10; input.value = 5;
+          input.name = q.id;
+          const val = document.createElement('div');
+          val.className = 'rating-value';
+          val.textContent = '5';
+          input.addEventListener('input', () => { val.textContent = input.value; });
+          row.appendChild(input);
+          row.appendChild(val);
+          const lbls = document.createElement('div');
+          lbls.className = 'rating-labels';
+          lbls.innerHTML = '<span>1 &mdash; Sehr schlecht</span><span>10 &mdash; Ausgezeichnet</span>';
+          wrap.appendChild(row);
+          wrap.appendChild(lbls);
+          div.appendChild(wrap);
+        }
+
+        container.appendChild(div);
+      });
+    }
+
+    async function submitSurvey() {
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.textContent = 'Wird gesendet...';
+
+      const answers = {};
+      document.querySelectorAll('.question').forEach(q => {
+        const id = q.dataset.id;
+        const type = q.dataset.type;
+        if (type === 'multiple_choice') {
+          const checked = [...q.querySelectorAll('input[type="checkbox"]:checked')].map(c => c.value);
+          answers[id] = checked;
+        } else if (type === 'rating') {
+          const input = q.querySelector('input[type="range"]');
+          answers[id] = parseInt(input.value, 10);
+        }
+      });
+
+      try {
+        const res = await fetch('/api/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ answers })
+        });
+        if (res.ok) {
+          document.getElementById('surveyForm').style.display = 'none';
+          document.getElementById('successMsg').style.display = 'block';
+        } else {
+          throw new Error('Server error');
+        }
+      } catch (e) {
+        btn.disabled = false;
+        btn.textContent = 'Antworten absenden';
+        alert('Fehler beim Senden. Bitte versuche es erneut.');
+      }
+    }
+
+    function escHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    loadSurvey();
+  </script>
+
+</body>
+</html>

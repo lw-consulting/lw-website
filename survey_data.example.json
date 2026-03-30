@@ -1,0 +1,23 @@
+{
+  "title": "Beispiel-Umfrage",
+  "active": true,
+  "questions": [
+    {
+      "id": "q1",
+      "text": "Wie zufrieden bist du mit dem heutigen Workshop?",
+      "type": "rating"
+    },
+    {
+      "id": "q2",
+      "text": "Welches Thema hat dir am meisten gebracht?",
+      "type": "multiple_choice",
+      "options": ["Mindset", "Fuehrung", "Prozesse", "Strategie"]
+    },
+    {
+      "id": "q3",
+      "text": "Was interessiert dich fuer zukuenftige Sessions?",
+      "type": "multiple_choice",
+      "options": ["Unternehmercoaching", "Mitarbeitercoaching", "Business-Beratung", "Sonstiges"]
+    }
+  ]
+}

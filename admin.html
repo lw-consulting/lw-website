@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | Umfrage-Dashboard</title>
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --primary: #8496f8;
+      --primary-dark: #6b7de8;
+      --primary-light: #a8b5fb;
+      --dark: #282828;
+      --text: #3a3a3a;
+      --text-light: #6b7280;
+      --bg: #ffffff;
+      --bg-light: #edebe9;
+      --bg-page: #f5f4f2;
+      --border: #e5e7eb;
+      --radius: 10px;
+      --radius-lg: 16px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.07);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+      --transition: 0.2s ease;
+      --danger: #ef4444;
+      --success: #22c55e;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color: var(--text); background: var(--bg-page);
+      line-height: 1.6; min-height: 100vh;
+    }
+
+    /* ── Login Screen ── */
+    #loginScreen {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem;
+    }
+    .login-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem;
+      width: 100%; max-width: 400px;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+    .login-card__logo { margin-bottom: 1.5rem; }
+    .login-card__logo img { height: 36px; }
+    .login-card h1 {
+      font-size: 1.35rem; font-weight: 700; color: var(--dark);
+      margin-bottom: 0.35rem;
+    }
+    .login-card p { color: var(--text-light); font-size: 0.9rem; margin-bottom: 1.75rem; }
+    .login-error {
+      display: none;
+      background: rgba(239,68,68,0.1); color: var(--danger);
+      border-radius: var(--radius); padding: 0.6rem 1rem;
+      font-size: 0.875rem; margin-bottom: 1rem;
+    }
+
+    /* ── Dashboard ── */
+    #dashboard { display: none; }
+
+    .topbar {
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: var(--shadow);
+    }
+    .topbar__inner {
+      max-width: 1200px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .topbar__left { display: flex; align-items: center; gap: 1rem; }
+    .topbar__logo img { height: 32px; display: block; }
+    .topbar__title {
+      font-size: 0.9rem; font-weight: 600; color: var(--text-light);
+      padding-left: 1rem; border-left: 1px solid var(--border);
+    }
+    .topbar__right { display: flex; align-items: center; gap: 0.75rem; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.7rem;
+      border-radius: 100px;
+    }
+    .badge--active { background: rgba(34,197,94,0.12); color: var(--success); }
+    .badge--inactive { background: rgba(107,114,128,0.12); color: var(--text-light); }
+    .badge::before {
+      content: ''; width: 7px; height: 7px; border-radius: 50%;
+      background: currentColor;
+    }
+
+    /* ── Main Layout ── */
+    .main {
+      max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      box-shadow: var(--shadow);
+    }
+    .card__header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.5rem; padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .card__title {
+      font-size: 1rem; font-weight: 700; color: var(--dark);
+    }
+    .card__subtitle { font-size: 0.825rem; color: var(--text-light); margin-top: 0.2rem; }
+
+    /* ── Forms ── */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: 0.825rem; font-weight: 600;
+      color: var(--text); margin-bottom: 0.4rem;
+    }
+    input[type="text"], input[type="password"], select, textarea {
+      width: 100%; padding: 0.7rem 0.9rem;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      font-size: 0.9rem; font-family: inherit; color: var(--text);
+      background: var(--bg);
+      transition: border-color var(--transition), box-shadow var(--transition);
+      outline: none;
+    }
+    input[type="text"]:focus, input[type="password"]:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(132,150,248,0.15);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+      padding: 0.7rem 1.25rem; border-radius: var(--radius);
+      font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; border: none; font-family: inherit;
+      transition: transform var(--transition), box-shadow var(--transition), background var(--transition), opacity var(--transition);
+      text-decoration: none;
+    }
+    .btn--primary {
+      background: var(--primary); color: white;
+      box-shadow: 0 4px 12px rgba(132,150,248,0.35);
+    }
+    .btn--primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+    .btn--outline {
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn--outline:hover { background: var(--bg-light); }
+    .btn--danger {
+      background: rgba(239,68,68,0.1); color: var(--danger);
+      border: 1px solid rgba(239,68,68,0.2);
+    }
+    .btn--danger:hover { background: rgba(239,68,68,0.18); }
+    .btn--sm { padding: 0.4rem 0.85rem; font-size: 0.8rem; }
+    .btn--full { width: 100%; }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+
+    /* ── Question Builder ── */
+    .question-list { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem; }
+    .question-item {
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem; background: var(--bg-page);
+      position: relative;
+    }
+    .question-item__row { display: grid; grid-template-columns: 1fr auto; gap: 0.75rem; align-items: start; }
+    .question-item__fields { display: flex; flex-direction: column; gap: 0.6rem; }
+    .question-item__remove {
+      background: none; border: none; cursor: pointer; color: var(--text-light);
+      padding: 0.2rem; border-radius: 6px; font-size: 1.1rem; line-height: 1;
+      transition: color var(--transition);
+      margin-top: 2px;
+    }
+    .question-item__remove:hover { color: var(--danger); }
+    .options-list { display: flex; flex-direction: column; gap: 0.4rem; margin-top: 0.5rem; }
+    .option-row { display: flex; align-items: center; gap: 0.5rem; }
+    .option-row input[type="text"] { padding: 0.45rem 0.75rem; font-size: 0.85rem; }
+    .option-row .btn { flex-shrink: 0; }
+
+    /* ── Results ── */
+    .results-empty {
+      text-align: center; padding: 2.5rem 1rem;
+      color: var(--text-light); font-size: 0.9rem;
+    }
+    .result-question { margin-bottom: 1.75rem; }
+    .result-question__title {
+      font-size: 0.875rem; font-weight: 600; color: var(--dark);
+      margin-bottom: 0.75rem;
+    }
+    .result-stat {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 0.5rem; font-size: 0.85rem;
+    }
+    .result-stat__label {
+      min-width: 110px; max-width: 110px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: var(--text);
+    }
+    .result-stat__bar-wrap {
+      flex: 1; background: var(--bg-light); border-radius: 100px; height: 10px; overflow: hidden;
+    }
+    .result-stat__bar {
+      height: 100%; background: var(--primary); border-radius: 100px;
+      transition: width 0.5s ease;
+    }
+    .result-stat__count { min-width: 40px; color: var(--text-light); text-align: right; }
+
+    .rating-summary {
+      display: flex; align-items: center; gap: 1.5rem;
+      padding: 1rem 1.25rem;
+      background: var(--bg-light); border-radius: var(--radius);
+    }
+    .rating-summary__avg {
+      font-size: 2.25rem; font-weight: 800; color: var(--primary); line-height: 1;
+    }
+    .rating-summary__info { font-size: 0.85rem; color: var(--text-light); }
+    .rating-summary__info strong { display: block; font-size: 0.9rem; color: var(--text); }
+
+    .refresh-hint {
+      font-size: 0.775rem; color: var(--text-light); text-align: right;
+      margin-top: 0.75rem;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999;
+      padding: 0.75rem 1.25rem; border-radius: var(--radius);
+      font-size: 0.875rem; font-weight: 600; color: white;
+      opacity: 0; transform: translateY(8px);
+      transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast--success { background: var(--success); }
+    .toast--error { background: var(--danger); }
+
+    /* ── Divider ── */
+    .divider { height: 1px; background: var(--border); margin: 1rem 0; }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .card { padding: 1.25rem; }
+      .topbar__title { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Login Screen ─────────────────────────────────────────────────────── -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-card__logo">
+      <img src="img/logo.svg" alt="Lukas Watzenboeck">
+    </div>
+    <h1>Admin-Bereich</h1>
+    <p>Bitte gib dein Passwort ein um fortzufahren.</p>
+    <div class="login-error" id="loginError">Falsches Passwort. Bitte erneut versuchen.</div>
+    <div class="form-group">
+      <input type="password" id="passwordInput" placeholder="Passwort" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="btn btn--primary btn--full" onclick="doLogin()">Anmelden</button>
+  </div>
+</div>
+
+<!-- ── Dashboard ────────────────────────────────────────────────────────── -->
+<div id="dashboard">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__left">
+        <a href="index.html" class="topbar__logo"><img src="img/logo.svg" alt="Lukas Watzenboeck"></a>
+        <span class="topbar__title">Umfrage-Dashboard</span>
+      </div>
+      <div class="topbar__right">
+        <span class="badge badge--inactive" id="statusBadge">Keine aktive Umfrage</span>
+        <button class="btn btn--outline btn--sm" onclick="logout()">Abmelden</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="main">
+
+    <!-- ── LEFT: Umfrage erstellen ──────────────────────────────────────── -->
+    <div class="card">
+      <div class="card__header">
+        <div>
+          <div class="card__title">Neue Umfrage erstellen</div>
+          <div class="card__subtitle">Bestehende Umfrage + Ergebnisse werden ersetzt</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="surveyTitle">Titel der Umfrage</label>
+        <input type="text" id="surveyTitle" placeholder="z.B. Feedback Workshop Maerz 2026">
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="form-group">
+        <label>Fragen</label>
+        <div class="question-list" id="questionList"></div>
+        <button class="btn btn--outline btn--sm" onclick="addQuestion()">+ Frage hinzufuegen</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <button class="btn btn--primary btn--full" id="activateBtn" onclick="activateSurvey()">
+        &#9654; Umfrage aktivieren
+      </button>
+    </div>
+
+    <!-- ── RIGHT: Ergebnisse ────────────────────────────────────────────── -->
+    <div class="card">
+      <div class="card__header">
+        <div>
+          <div class="card__title">Aktuelle Ergebnisse</div>
+          <div class="card__subtitle">Aktualisiert alle 10 Sekunden</div>
+        </div>
+        <button class="btn btn--danger btn--sm" onclick="resetSurvey()">&#128465; Zuruecksetzen</button>
+      </div>
+
+      <div id="resultsContainer">
+        <div class="results-empty">Noch keine aktive Umfrage.</div>
+      </div>
+
+      <div class="refresh-hint" id="refreshHint"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── PASSWORT HIER AENDERN ────────────────────────────────────────────────
+  const ADMIN_PASSWORD = 'ADMIN_PASSWORD_HIER';
+  // ────────────────────────────────────────────────────────────────────────
+
+  let questionCounter = 0;
+  let refreshInterval = null;
+
+  // ── Auth ─────────────────────────────────────────────────────────────────
+
+  function doLogin() {
+    const input = document.getElementById('passwordInput').value;
+    if (input === ADMIN_PASSWORD) {
+      sessionStorage.setItem('admin_auth', '1');
+      showDashboard();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('passwordInput').focus();
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('admin_auth');
+    clearInterval(refreshInterval);
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('passwordInput').value = '';
+  }
+
+  function showDashboard() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadResults();
+    loadCurrentSurveyIntoForm();
+    refreshInterval = setInterval(loadResults, 10000);
+  }
+
+  // Check session on load
+  window.addEventListener('DOMContentLoaded', () => {
+    if (sessionStorage.getItem('admin_auth') === '1') {
+      showDashboard();
+    } else {
+      setTimeout(() => document.getElementById('passwordInput').focus(), 100);
+    }
+    document.getElementById('passwordInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doLogin();
+    });
+  });
+
+  // ── Question Builder ─────────────────────────────────────────────────────
+
+  function addQuestion(prefill) {
+    questionCounter++;
+    const qid = 'q' + questionCounter;
+    const li = document.createElement('div');
+    li.className = 'question-item';
+    li.dataset.qid = qid;
+
+    li.innerHTML = `
+      <div class="question-item__row">
+        <div class="question-item__fields">
+          <input type="text" placeholder="Fragetext eingeben..." class="q-text"
+            value="${escHtml(prefill ? prefill.text : '')}">
+          <select class="q-type" onchange="onTypeChange(this)">
+            <option value="multiple_choice" ${prefill && prefill.type === 'multiple_choice' ? 'selected' : ''}>Multiple Choice</option>
+            <option value="rating" ${prefill && prefill.type === 'rating' ? 'selected' : ''}>Rating 1&ndash;10</option>
+          </select>
+          <div class="options-area"></div>
+        </div>
+        <button class="question-item__remove" onclick="removeQuestion(this)" title="Frage entfernen">&times;</button>
+      </div>
+    `;
+
+    document.getElementById('questionList').appendChild(li);
+
+    if (!prefill || prefill.type === 'multiple_choice') {
+      initOptionsArea(li, prefill ? prefill.options : []);
+    }
+    // rating: no options area needed
+    if (prefill && prefill.type === 'rating') {
+      li.querySelector('.options-area').innerHTML = '';
+    }
+  }
+
+  function onTypeChange(sel) {
+    const item = sel.closest('.question-item');
+    const area = item.querySelector('.options-area');
+    if (sel.value === 'multiple_choice') {
+      initOptionsArea(item, []);
+    } else {
+      area.innerHTML = '';
+    }
+  }
+
+  function initOptionsArea(item, existingOptions) {
+    const area = item.querySelector('.options-area');
+    area.innerHTML = `
+      <div class="options-list" id="opts_${item.dataset.qid}"></div>
+      <button class="btn btn--outline btn--sm" style="margin-top:0.5rem"
+        onclick="addOption('${item.dataset.qid}')">+ Option hinzufuegen</button>
+    `;
+    if (existingOptions && existingOptions.length) {
+      existingOptions.forEach(o => addOption(item.dataset.qid, o));
+    } else {
+      addOption(item.dataset.qid);
+      addOption(item.dataset.qid);
+    }
+  }
+
+  function addOption(qid, value) {
+    const list = document.getElementById('opts_' + qid);
+    if (!list) return;
+    const row = document.createElement('div');
+    row.className = 'option-row';
+    row.innerHTML = `
+      <input type="text" placeholder="Option..." value="${escHtml(value || '')}">
+      <button class="btn btn--outline btn--sm" onclick="this.closest('.option-row').remove()">&#128465;</button>
+    `;
+    list.appendChild(row);
+  }
+
+  function removeQuestion(btn) {
+    btn.closest('.question-item').remove();
+  }
+
+  // ── Activate Survey ──────────────────────────────────────────────────────
+
+  async function activateSurvey() {
+    const title = document.getElementById('surveyTitle').value.trim();
+    if (!title) { showToast('Bitte gib einen Titel ein.', 'error'); return; }
+
+    const items = document.querySelectorAll('.question-item');
+    if (items.length === 0) { showToast('Bitte fuege mindestens eine Frage hinzu.', 'error'); return; }
+
+    const questions = [];
+    let valid = true;
+    items.forEach((item, i) => {
+      const text = item.querySelector('.q-text').value.trim();
+      if (!text) { valid = false; return; }
+      const type = item.querySelector('.q-type').value;
+      const q = { id: item.dataset.qid, text, type };
+      if (type === 'multiple_choice') {
+        const opts = [...item.querySelectorAll('.options-list input[type="text"]')]
+          .map(el => el.value.trim()).filter(Boolean);
+        if (opts.length < 2) { valid = false; return; }
+        q.options = opts;
+      }
+      questions.push(q);
+    });
+
+    if (!valid) {
+      showToast('Bitte fuelle alle Felder aus (min. 2 Optionen bei Multiple Choice).', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('activateBtn');
+    btn.disabled = true; btn.textContent = 'Wird aktiviert...';
+
+    try {
+      const res = await fetch('/api/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, questions })
+      });
+      if (res.ok) {
+        showToast('Umfrage erfolgreich aktiviert!', 'success');
+        loadResults();
+        updateStatusBadge(true, title);
+      } else {
+        showToast('Fehler beim Aktivieren.', 'error');
+      }
+    } catch (e) {
+      showToast('Netzwerkfehler.', 'error');
+    }
+    btn.disabled = false; btn.textContent = '\u25B6 Umfrage aktivieren';
+  }
+
+  // ── Reset ────────────────────────────────────────────────────────────────
+
+  async function resetSurvey() {
+    if (!confirm('Alle Antworten wirklich loeschen?')) return;
+    try {
+      const res = await fetch('/api/reset', { method: 'POST' });
+      if (res.ok) {
+        showToast('Ergebnisse zurueckgesetzt.', 'success');
+        loadResults();
+      }
+    } catch (e) {
+      showToast('Fehler beim Zuruecksetzen.', 'error');
+    }
+  }
+
+  // ── Load Results ─────────────────────────────────────────────────────────
+
+  async function loadResults() {
+    try {
+      const [surveyRes, resultsRes] = await Promise.all([
+        fetch('/api/survey'),
+        fetch('/api/results')
+      ]);
+      const survey = await surveyRes.json();
+      const results = await resultsRes.json();
+      renderResults(survey, results);
+      updateStatusBadge(survey.active, survey.title);
+      const now = new Date();
+      document.getElementById('refreshHint').textContent =
+        'Zuletzt aktualisiert: ' + now.toLocaleTimeString('de-AT');
+    } catch (e) {
+      // silent
+    }
+  }
+
+  function renderResults(survey, results) {
+    const container = document.getElementById('resultsContainer');
+    const responses = results.responses || [];
+
+    if (!survey.active || !survey.questions || survey.questions.length === 0) {
+      container.innerHTML = '<div class="results-empty">Noch keine aktive Umfrage.</div>';
+      return;
+    }
+
+    if (responses.length === 0) {
+      container.innerHTML = '<div class="results-empty">Noch keine Antworten eingegangen.<br>Teile den Link <strong>/survey</strong> mit deinen Teilnehmern.</div>';
+      return;
+    }
+
+    let html = `<div style="font-size:0.85rem; color:var(--text-light); margin-bottom:1.25rem;">
+      <strong style="color:var(--text)">${responses.length}</strong> Antwort${responses.length === 1 ? '' : 'en'} eingegangen
+    </div>`;
+
+    survey.questions.forEach(q => {
+      html += `<div class="result-question">`;
+      html += `<div class="result-question__title">${escHtml(q.text)}</div>`;
+
+      if (q.type === 'multiple_choice') {
+        const counts = {};
+        (q.options || []).forEach(o => counts[o] = 0);
+        responses.forEach(r => {
+          const ans = r.answers[q.id];
+          if (Array.isArray(ans)) ans.forEach(a => { if (counts[a] !== undefined) counts[a]++; });
+        });
+        const maxCount = Math.max(1, ...Object.values(counts));
+        Object.entries(counts).forEach(([opt, count]) => {
+          const pct = Math.round((count / maxCount) * 100);
+          const pctOfTotal = responses.length > 0 ? Math.round((count / responses.length) * 100) : 0;
+          html += `<div class="result-stat">
+            <div class="result-stat__label" title="${escHtml(opt)}">${escHtml(opt)}</div>
+            <div class="result-stat__bar-wrap">
+              <div class="result-stat__bar" style="width:${pct}%"></div>
+            </div>
+            <div class="result-stat__count">${count} <span style="color:var(--text-light);font-size:0.75rem">(${pctOfTotal}%)</span></div>
+          </div>`;
+        });
+
+      } else if (q.type === 'rating') {
+        const vals = responses
+          .map(r => r.answers[q.id])
+          .filter(v => typeof v === 'number' && v >= 1 && v <= 10);
+        if (vals.length === 0) {
+          html += `<div class="results-empty" style="padding:1rem">Noch keine Bewertungen.</div>`;
+        } else {
+          const avg = (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1);
+          // Distribution bars
+          const dist = {};
+          for (let i = 1; i <= 10; i++) dist[i] = 0;
+          vals.forEach(v => dist[v]++);
+          const maxDist = Math.max(1, ...Object.values(dist));
+          html += `<div class="rating-summary" style="margin-bottom:0.75rem">
+            <div class="rating-summary__avg">${avg}</div>
+            <div class="rating-summary__info">
+              <strong>Durchschnitt</strong>
+              ${vals.length} Bewertung${vals.length === 1 ? '' : 'en'}
+            </div>
+          </div>`;
+          html += `<div>`;
+          for (let i = 1; i <= 10; i++) {
+            const pct = Math.round((dist[i] / maxDist) * 100);
+            html += `<div class="result-stat">
+              <div class="result-stat__label">${i}</div>
+              <div class="result-stat__bar-wrap">
+                <div class="result-stat__bar" style="width:${pct}%"></div>
+              </div>
+              <div class="result-stat__count">${dist[i]}</div>
+            </div>`;
+          }
+          html += `</div>`;
+        }
+      }
+
+      html += `</div>`;
+    });
+
+    container.innerHTML = html;
+  }
+
+  // ── Load current survey into form ────────────────────────────────────────
+
+  async function loadCurrentSurveyIntoForm() {
+    try {
+      const res = await fetch('/api/survey');
+      const survey = await res.json();
+      if (survey.active && survey.title) {
+        document.getElementById('surveyTitle').value = survey.title;
+        document.getElementById('questionList').innerHTML = '';
+        questionCounter = 0;
+        (survey.questions || []).forEach(q => addQuestion(q));
+      }
+    } catch (e) { /* silent */ }
+  }
+
+  // ── Status Badge ─────────────────────────────────────────────────────────
+
+  function updateStatusBadge(active, title) {
+    const badge = document.getElementById('statusBadge');
+    if (active && title) {
+      badge.className = 'badge badge--active';
+      badge.textContent = 'Aktiv: ' + title.substring(0, 30) + (title.length > 30 ? '...' : '');
+    } else {
+      badge.className = 'badge badge--inactive';
+      badge.textContent = 'Keine aktive Umfrage';
+    }
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+
+  let toastTimer = null;
+  function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast toast--${type} show`;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { t.classList.remove('show'); }, 3000);
+  }
+
+  // ── Utils ─────────────────────────────────────────────────────────────────
+
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+</script>
+
+</body>
+</html>
