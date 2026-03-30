@@ -116,12 +116,12 @@ http.createServer((req, res) => {
 
   // ── Static File Serving ───────────────────────────────────────────────
 
-  let filePath = '.' + (pathname === '/' ? '/index.html' : pathname);
+  let filePath = path.join(__dirname, pathname === '/' ? '/index.html' : pathname);
   const ext = path.extname(filePath).toLowerCase();
 
   fs.readFile(filePath, (err, content) => {
     if (err) {
-      fs.readFile('./index.html', (e, page) => {
+      fs.readFile(path.join(__dirname, 'index.html'), (e, page) => {
         res.writeHead(404, { 'Content-Type': 'text/html' });
         res.end(page || 'Not Found');
       });
